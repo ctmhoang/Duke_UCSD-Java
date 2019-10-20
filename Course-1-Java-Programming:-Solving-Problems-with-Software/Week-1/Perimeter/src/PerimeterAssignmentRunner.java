@@ -85,7 +85,6 @@ public class PerimeterAssignmentRunner {
                 maxPerimFile = f;
                 maxPerimVal = getPerimeter(s);
             }
-            ;
         }
         return maxPerimFile;
     }

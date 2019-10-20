@@ -19,8 +19,8 @@
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
-    <property name="last_opened_file_path" value="$USER_HOME$/Downloads/apache-csv.jar!/" />
-    <property name="project.structure.last.edited" value="Libraries" />
+    <property name="last_opened_file_path" value="$USER_HOME$/Duke/courserajava.jar!/" />
+    <property name="project.structure.last.edited" value="Modules" />
     <property name="project.structure.proportion" value="0.15" />
     <property name="project.structure.side.proportion" value="0.2" />
   </component>
@@ -61,6 +61,9 @@
       <option name="presentableId" value="Default" />
       <updated>1570329434379</updated>
       <workItem from="1570329437954" duration="2857000" />
+      <workItem from="1570498503413" duration="7000" />
+      <workItem from="1570671336486" duration="41000" />
+      <workItem from="1571582308806" duration="112000" />
     </task>
     <servers />
   </component>
