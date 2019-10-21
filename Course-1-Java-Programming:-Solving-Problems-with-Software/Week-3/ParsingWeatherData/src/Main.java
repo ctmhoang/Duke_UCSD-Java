@@ -11,8 +11,11 @@ public class Main {
     public static void main(String[] args) throws IOException {
         // write your code here
 //        testColdestInFile();
-//        testFileWithColdestTemperature();
-        testLowestHumidityInFile();
+        testFileWithColdestTemperature();
+//        testLowestHumidityInFile();
+//        testLowestHumidityInManyFiles();
+//        testAverageTemperatureInFile();
+//        testAverageTemperatureWithHighHumidityInFile();
     }
 
     public static CSVRecord coldestHourInFile(CSVParser parser) {
@@ -51,13 +54,13 @@ public class Main {
         for (File f : dr.selectedFiles()) {
             FileResource fr = new FileResource(f);
             CSVRecord currentRec = coldestHourInFile(fr.getCSVParser());
-            if (coldestRec == null) {
-                coldestRec = currentRec;
+            if (coldestFile == null){
                 coldestFile = f;
             } else {
-                coldestRec = getColdestTemp(coldestRec, currentRec);
-                coldestFile = f;
+                coldestFile = (Double.parseDouble(coldestRec.get("TemperatureF")) > Double.parseDouble(currentRec.
+                        get("TemperatureF"))) ? f : coldestFile;
             }
+            coldestRec = getColdestTemp(coldestRec, currentRec);
         }
         assert coldestFile != null;
         return coldestFile.getCanonicalPath();
@@ -113,5 +116,69 @@ public class Main {
         CSVRecord csv = lowestHumidityInFile(parser);
         System.out.println("Lowest Humidity was " + csv.get("Humidity") + " at " + csv.get("DateUTC"));
     }
+
+    public static CSVRecord lowestHumidityInManyFiles() {
+        DirectoryResource dr = new DirectoryResource();
+        CSVRecord driestRec = null;
+        for (File f : dr.selectedFiles()) {
+            FileResource fr = new FileResource(f);
+            CSVRecord currentRec = lowestHumidityInFile(fr.getCSVParser());
+            driestRec = getLeastMuggyRec(driestRec, currentRec);
+        }
+        return driestRec;
+    }
+
+    public static void testLowestHumidityInManyFiles() {
+        CSVRecord driestFile = lowestHumidityInManyFiles();
+        System.out.println("Lowest Humidity was " + driestFile.get("Humidity") + " " + driestFile.get("DateUTC"));
+    }
+
+    public static double averageTemperatureInFile(CSVParser parser) {
+        int hoursValidCount = 0;
+        double tempSum = 0;
+        for (CSVRecord rec : parser) {
+            double currentTemp = Double.parseDouble(rec.get("TemperatureF"));
+            if (currentTemp != -9999) {
+                tempSum += currentTemp;
+                hoursValidCount++;
+            }
+        }
+        return tempSum / hoursValidCount;
+    }
+
+    public static void testAverageTemperatureInFile() {
+        FileResource f = new FileResource();
+        System.out.println("Average temperature in file is " + averageTemperatureInFile(f.getCSVParser()));
+    }
+
+    public static double averageTemperatureWithHighHumidityInFile(CSVParser parser, int value) {
+        int hoursValidCount = 0;
+        double tempSum = 0;
+        for (CSVRecord currentWeather : parser) {
+            String isValidHumid = currentWeather.get("Humidity");
+            if (isValidHumid.charAt(0) != 'N') {
+                double humid = Double.parseDouble(isValidHumid);
+                if (humid >= value) {
+                    hoursValidCount++;
+                    tempSum += Double.parseDouble(currentWeather.get("TemperatureF"));
+                }
+            }
+        }
+        if (hoursValidCount == 0) {
+            return 0;
+        }
+        return tempSum / hoursValidCount;
+    }
+
+    public static void testAverageTemperatureWithHighHumidityInFile() {
+        FileResource f = new FileResource();
+        double temp = averageTemperatureWithHighHumidityInFile(f.getCSVParser(), 80);
+        if (temp == 0) {
+            System.out.println("No temperatures with that humidity");
+        } else {
+            System.out.println("Average Temp when high Humidity is " + temp);
+        }
+    }
+
 
 }
