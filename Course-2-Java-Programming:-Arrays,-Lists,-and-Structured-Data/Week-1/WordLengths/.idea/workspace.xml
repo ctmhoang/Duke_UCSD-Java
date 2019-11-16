@@ -40,6 +40,11 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Application.Main" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SvnConfiguration">
     <configuration />
@@ -52,6 +57,7 @@
       <option name="presentableId" value="Default" />
       <updated>1573826197216</updated>
       <workItem from="1573826200143" duration="2894000" />
+      <workItem from="1573866961747" duration="1516000" />
     </task>
     <servers />
   </component>
