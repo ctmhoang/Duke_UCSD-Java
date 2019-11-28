@@ -1,8 +1,6 @@
 import edu.duke.FileResource;
-
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.Arrays;
 
 public class WordFrequencies
 {
@@ -29,16 +27,15 @@ public class WordFrequencies
     }
 
     public int findIndexOfMax(){
-        ArrayList<Integer> freqs = new ArrayList<>();
-        freqs = (ArrayList<Integer>) myFreqs.clone();
-        freqs.sort(Collections.reverseOrder());
-        return myFreqs.get(freqs.get(0));
+        Integer[] freqs = myFreqs.toArray(new Integer[0]);
+        Arrays.sort(freqs);
+        return freqs[freqs.length - 1];
     }
 
     public void tester(){
         findUnique();
         System.out.println("Unique words: "+ myWords.size());
-        System.out.println("The word that occurs most often and its count are: " + myWords.get(findIndexOfMax()));
+        System.out.println("The word that occurs most often and its count are: " + findIndexOfMax());
         for(int i = 0 ; i < myWords.size(); i ++){
             System.out.println(myFreqs.get(i) + "\t" + myWords.get(i));
         }
