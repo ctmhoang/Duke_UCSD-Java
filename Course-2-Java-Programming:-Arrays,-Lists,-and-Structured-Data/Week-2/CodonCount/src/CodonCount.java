@@ -48,7 +48,7 @@ public class CodonCount {
             System.out.println("\nReading frame starting with " + i + " results in " + DNACodons.size() + " unique codons\n" +
                     "and most common codon is " + getMostCommonCodon() + " with count " + DNACodons.get(getMostCommonCodon()) + "\n" +
                     "Counts of codons between 1 and 5 inclusive are:");
-            printCodonCounts(1, 5);
+            printCodonCounts(1z, 5);
         }
     }
 }
