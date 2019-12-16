@@ -19,7 +19,7 @@
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
-    <property name="last_opened_file_path" value="$USER_HOME$/Duke/courserajava.jar!/" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../uniqueIps" />
     <property name="project.structure.last.edited" value="Libraries" />
     <property name="project.structure.proportion" value="0.0" />
     <property name="project.structure.side.proportion" value="0.2" />
@@ -64,6 +64,7 @@
       <option name="presentableId" value="Default" />
       <updated>1576405102170</updated>
       <workItem from="1576405106273" duration="3474000" />
+      <workItem from="1576462112497" duration="1391000" />
     </task>
     <servers />
   </component>

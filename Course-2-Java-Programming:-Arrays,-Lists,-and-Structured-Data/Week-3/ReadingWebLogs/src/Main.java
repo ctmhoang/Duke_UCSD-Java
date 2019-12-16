@@ -15,7 +15,7 @@ public class Main {
     public static void testLogAnalyzer() {
         // complete method
         LogAnalyzer analyzer = new LogAnalyzer();
-        analyzer.readFile("/home/artlist/IdeaProjects/ReadingWebLogs/test/short-test_log");
+        analyzer.readFile("test/short-test_log");
         analyzer.printAll();
     }
 }
