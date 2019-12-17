@@ -10,6 +10,7 @@ import edu.duke.FileResource;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 public class LogAnalyzer {
@@ -85,6 +86,18 @@ public class LogAnalyzer {
         return counts;
     }
 
+    private HashMap<String, Integer> countVisitsPerIP(ArrayList<String> IPsList) {
+        HashMap<String, Integer> counts = new HashMap<>();
+        for (String IP : IPsList) {
+            if (!counts.containsKey(IP)) {
+                counts.put(IP, 1);
+            } else {
+                counts.put(IP, counts.get(IP) + 1);
+            }
+        }
+        return counts;
+    }
+
     public int mostNumberVisitsByIP(HashMap<String, Integer> counts) {
         return Collections.max(counts.entrySet(), Comparator.comparingInt(Map.Entry::getValue)).getValue();
     }
@@ -95,5 +108,32 @@ public class LogAnalyzer {
                 .filter(stringIntegerEntry -> Objects.equals(stringIntegerEntry.getValue(), mostNumberVisitsByIP(counts)))
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    public HashMap<String, ArrayList<String>> iPsForDays() {
+        HashMap<String, ArrayList<String>> counts = new HashMap<>();
+        for (LogEntry logEntry : records) {
+            String day = logEntry.getAccessTime().toString().substring(4, 10);
+            String IP = logEntry.getIpAddress();
+            if (!counts.containsKey(day)) {
+                counts.put(day, Stream.of(IP).collect(Collectors.toCollection(ArrayList::new)));
+            } else {
+                counts.get(day).add(IP);
+            }
+        }
+        return counts;
+    }
+
+    public String dayWithMostIPVisits(HashMap<String, ArrayList<String>> iPsPerDay) {
+        return Collections.max(iPsPerDay.entrySet(), Comparator.comparingInt(entry -> entry.getValue().size())).getKey();
+    }
+
+    public ArrayList<String> iPsWithMostVisitsOnDay(HashMap<String, ArrayList<String>> iPsPerDay, String someday) {
+        if (!iPsPerDay.containsKey(someday)) {
+            return null;
+        }
+        ArrayList<String> NumberOfIPsInThatDay = iPsPerDay.get(someday);
+        HashMap<String, Integer> counts = countVisitsPerIP(NumberOfIPsInThatDay);
+        return iPsMostVisits(counts);
     }
 }

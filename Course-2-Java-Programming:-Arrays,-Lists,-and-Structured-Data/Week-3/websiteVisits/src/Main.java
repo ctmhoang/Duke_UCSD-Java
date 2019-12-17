@@ -23,10 +23,16 @@ public class Main {
 
     public static void testUniqueIP() {
         LogAnalyzer analyzer = new LogAnalyzer();
-        analyzer.readFile("test/weblog1_log");
+        analyzer.readFile("test/weblog3-short_log");
 //        System.out.println(analyzer.countUniqueIPs());
 //        analyzer.printAllHigherThanNum(400);
 //        System.out.println(analyzer.uniqueIPVisitOnDay("Sep 30").size());
 //        System.out.println(analyzer.countUniqueIPsInRange(300,399));
+//        System.out.println(analyzer.countVisitsPerIP().toString());
+//        System.out.println(analyzer.mostNumberVisitsByIP(analyzer.countVisitsPerIP()));
+//        System.out.println(analyzer.iPsMostVisits(analyzer.countVisitsPerIP()));
+//        System.out.println(analyzer.iPsForDays());
+//        System.out.println(analyzer.dayWithMostIPVisits(analyzer.iPsForDays()));
+//        System.out.println(analyzer.iPsWithMostVisitsOnDay(analyzer.iPsForDays(),"Sep 30"));
     }
 }
