@@ -7,7 +7,7 @@ import de.fhpotsdam.unfolding.providers.AbstractMapProvider;
 import de.fhpotsdam.unfolding.providers.Google;
 import de.fhpotsdam.unfolding.providers.MBTilesMapProvider;
 import de.fhpotsdam.unfolding.utils.MapUtils;
-z
+
 /** HelloWorld
   * An application with two maps side-by-side zoomed in on different locations.
   * Author: UC San Diego Coursera Intermediate Programming team
@@ -76,6 +76,9 @@ public class HelloWorld extends PApplet
 		
 		// TODO: Add code here that creates map2 
 		// Then you'll modify draw() below
+		map2 = new UnfoldingMap(this, 50,50,350, 500 ,provider);
+		map2.zoomAndPanTo(zoomLevel, new Location(43.7 , -79.4));
+		MapUtils.createDefaultEventDispatcher(this, map2);
 
 	}
 
@@ -84,6 +87,7 @@ public class HelloWorld extends PApplet
 		// So far we only draw map1...
 		// TODO: Add code so that both maps are displayed
 		map1.draw();
+		map2.draw();
 	}
 
 	
