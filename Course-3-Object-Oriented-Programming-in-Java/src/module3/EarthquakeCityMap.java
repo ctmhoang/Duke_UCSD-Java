@@ -125,7 +125,7 @@ public class EarthquakeCityMap extends PApplet {
         } else {
             marker.setColor(blue);
         }
-        marker.setRadius(map(mag,0,10,0,33));
+        marker.setRadius(map(mag, 0, 10, 0, 33));
 
         // Finally return the marker
         return marker;
@@ -142,6 +142,20 @@ public class EarthquakeCityMap extends PApplet {
     // TODO: Implement this method to draw the key
     private void addKey() {
         // Remember you can use Processing's graphics methods here
-
+        fill(200);
+        rect(10, 50, 170, 150, 7);
+        textSize(19);
+        fill(0);
+        text("Earthquake Key", 30, 70);
+        textSize(13);
+        text("5.0+ Mangitude", 61, 100);
+        text("4.0+ Mangitude", 61, 130);
+        text("Below 4.0", 61, 160);
+        fill(255, 0, 0);
+        ellipse(30, 100, 25, 25);
+        fill(255, 200, 0);
+        ellipse(30, 130, 17, 17);
+        fill(0, 0, 255);
+        ellipse(30, 157, 11, 11);
     }
 }
