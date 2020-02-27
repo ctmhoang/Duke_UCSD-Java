@@ -175,6 +175,7 @@ public class EarthquakeCityMap extends PApplet {
 		fill(255,255,255);
 		ellipse(50,450,20,20);
 		int x = 50, y = 450, t = 10;
+		strokeWeight(2);
 		line(x + t, y - t, x - t, y + t);
 		line(x - t, y - t, x + t, y + t);
 	}
