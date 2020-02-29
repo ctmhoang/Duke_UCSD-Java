@@ -1,7 +1,6 @@
 package module5;
 
 import de.fhpotsdam.unfolding.data.PointFeature;
-import de.fhpotsdam.unfolding.utils.ScreenPosition;
 import processing.core.PGraphics;
 
 /** Implements a visual marker for ocean earthquakes on an earthquake map
@@ -26,7 +25,6 @@ public class OceanQuakeMarker extends EarthquakeMarker {
 		pg.rect(x-radius, y-radius, 2*radius, 2*radius);
 		//TODO: You can find the x and y coordinates of a marker on a canvas by using the class ScreenPosition.
 		//???BUT HOW!!!!
-		ScreenPosition loc = new ScreenPosition(x,y);
 		if (!getClicked()) {
 			pg.noStroke();
 			pg.noFill();
