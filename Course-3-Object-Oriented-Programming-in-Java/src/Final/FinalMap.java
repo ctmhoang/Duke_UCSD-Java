@@ -66,11 +66,11 @@ public class FinalMap extends PApplet {
 
     // NEW IN MODULE 5
     private CommonMarker lastSelected;
-    private CommonMarker lastClicked;
+    private Marker lastClicked;
 
     // Airport Map Marker
-    private List<Marker> airportList;
-    List<Marker> routeList;
+    private List<Marker> airportMarkers;
+    List<Marker> routeMarkers;
 
     //LifeExP Marker
     Map<String, Float> lifeExpByCountry;
@@ -141,7 +141,7 @@ public class FinalMap extends PApplet {
         List<PointFeature> features = ParseFeed.parseAirports(this, "airports.dat");
 
         // list for markers, hashmap for quicker access when matching with routes
-        airportList = new ArrayList<Marker>();
+        airportMarkers = new ArrayList<Marker>();
         HashMap<Integer, Location> airports = new HashMap<Integer, Location>();
 
         // create markers from features
@@ -150,14 +150,14 @@ public class FinalMap extends PApplet {
 
             m.setRadius(5);
             m.setHidden(true);
-            airportList.add(m);
+            airportMarkers.add(m);
 
             // put airport in hashmap with OpenFlights unique id for key
             airports.put(Integer.parseInt(feature.getId()), feature.getLocation());
         }
         // parse route data
         List<ShapeFeature> routes = ParseFeed.parseRoutes(this, "routes.dat");
-        routeList = new ArrayList<Marker>();
+        routeMarkers = new ArrayList<Marker>();
         for (ShapeFeature route : routes) {
 
             // get source and destination airportIds
@@ -176,7 +176,7 @@ public class FinalMap extends PApplet {
 
             //UNCOMMENT IF YOU WANT TO SEE ALL ROUTES
             sl.setHidden(true);
-            routeList.add(sl);
+            routeMarkers.add(sl);
         }
         //END COPY FROM AirportMap
 
@@ -195,15 +195,14 @@ public class FinalMap extends PApplet {
         //           for their geometric properties
         map.addMarkers(quakeMarkers);
         map.addMarkers(cityMarkers);
-        map.addMarkers(airportList);
-        map.addMarkers(routeList);
+        map.addMarkers(airportMarkers);
+        map.addMarkers(routeMarkers);
         map.addMarkers(countryMarkers);
         shadeCountries();
         // End setup
         System.out.println("DONE");
     }
 
-    //TODO: Careful
     public void draw() {
         background(100);
         map.draw();
@@ -218,21 +217,39 @@ public class FinalMap extends PApplet {
     //Get Buttons Clicked Information
     public void updateClickButtons() {
         float x = mouseX;
-        if ( x > 25 && x < 25 + 150) {
+        if (x > 25 && x < 25 + 150) {
             float y = mouseY;
             if (!buttonsClicked) {
                 if (y > FIRST_BUTTON_Y_AXIS && y < FIRST_BUTTON_Y_AXIS + 60) {
                     buttonsClicked = true;
                     buttonContent = "EQ";
+                    setQuakeMarkersHidden(false);
                 } else if (y > FIRST_BUTTON_Y_AXIS + HOZ_GAP_BUTTONS && y < FIRST_BUTTON_Y_AXIS + HOZ_GAP_BUTTONS + 60) {
                     buttonsClicked = true;
                     buttonContent = "LE";
+                    setCountryMarkersHidden(false);
+                    setCityMarkersHidden(true);
                 } else if (y > FIRST_BUTTON_Y_AXIS + HOZ_GAP_BUTTONS * 2 && y < FIRST_BUTTON_Y_AXIS + HOZ_GAP_BUTTONS * 2 + 60) {
                     buttonsClicked = true;
                     buttonContent = "AP";
+                    setAirportMarkersHidden(false);
+                    setRoutesMarkersHidden(false);
                 }
             } else {
+
                 if (y > FIRST_BUTTON_Y_AXIS && y < FIRST_BUTTON_Y_AXIS + HOZ_GAP_BUTTONS * 2 + 60) {
+                    if (buttonContent.equals("EQ")) {
+                        setQuakeMarkersHidden(true);
+                    }
+                    if (buttonContent.equals("LE")) {
+
+                        setCountryMarkersHidden(true);
+                        setCityMarkersHidden(false);
+                    }
+                    if (buttonContent.equals("AP")) {
+                        setAirportMarkersHidden(true);
+                        setRoutesMarkersHidden(true);
+                    }
                     buttonsClicked = false;
                     buttonContent = null;
                 }
@@ -240,100 +257,161 @@ public class FinalMap extends PApplet {
         }
     }
 
+    private void setQuakeMarkersHidden(boolean b) {
+        for (Marker marker : quakeMarkers) {
+            marker.setHidden(b);
+        }
+    }
+
+    private void setCountryMarkersHidden(boolean b) {
+        for (Marker marker : countryMarkers) {
+            marker.setHidden(b);
+        }
+    }
+
+    private void setCityMarkersHidden(boolean b) {
+        for (Marker marker : cityMarkers) {
+            marker.setHidden(b);
+        }
+    }
+
+    private void setAirportMarkersHidden(boolean b) {
+        for (Marker marker : airportMarkers) {
+            marker.setHidden(b);
+        }
+    }
+
+    private void setRoutesMarkersHidden(boolean b) {
+        for (Marker marker : routeMarkers) {
+            marker.setHidden(b);
+        }
+    }
+
+
     // shows information for clicked earthquake/city
     private void showInformation() {
-        if (buttonsClicked && buttonContent.equals("EQ")) { //If not clicked in any buttons
-            fill(255, 250, 240);
+        //Todo: add info for airport and country
+        if (buttonsClicked) {
             int xbase = 25;
             int ybase = FIRST_BUTTON_Y_AXIS + HOZ_GAP_BUTTONS * 3;
-            rect(xbase, ybase, 150, 130,7);
+            if (buttonContent.equals("EQ")) {
+                fill(255, 250, 240);
+                rect(xbase, ybase, 150, 130, 7);
 
-            if (lastClicked instanceof CityMarker) {
+                if (lastClicked instanceof CityMarker) {
+                    fill(0);
+                    textAlign(LEFT, CENTER);
+                    textSize(13);
+                    text(lastClicked.getStringProperty("name"), xbase + 25, ybase + 10);
+                    textSize(11);
+
+                    int numOfEQs = 0;
+                    float totalMag = 0;
+                    Marker mostRecent = null;
+                    for (Marker eq : quakeMarkers) {
+                        if (!eq.isHidden()) {
+                            numOfEQs++;
+                            totalMag += Float.parseFloat(eq.getProperty("magnitude").toString());
+                            if (eq.getProperty("age").equals("Past Hour")) {
+                                mostRecent = eq;
+                            } else if (eq.getProperty("age").equals("Past Day")) {
+                                mostRecent = eq;
+                            }
+                            if (mostRecent == null) {
+                                mostRecent = eq;
+                            }
+                        }
+                    }
+
+                    fill(0);
+
+                    if (numOfEQs == 0) {
+                        fill(23, 135, 150);
+                        text("There are no earthquake\nhappened in this area", xbase + 5, ybase + 35);
+                    } else {
+                        text("Number of Nearby EQs: ", xbase + 5, ybase + 35);
+                        text(numOfEQs, textWidth("Number of Nearby EQs: ") + xbase + 5, ybase + 35);
+
+                        text("Avg. Magnitude: ", xbase + 5, ybase + 50);
+                        text((totalMag / numOfEQs), textWidth("Avg. Magnitude: ") + xbase + 5, ybase + 50);
+
+                        text("The Most Recent EQ: ", xbase + 5, ybase + 65);
+                        fill(255, 0, 0);
+                        if (mostRecent == null) {
+                            fill(23, 135, 150);
+                            text("No earthquakes have occurred\nin this area recently", xbase + 5, ybase + 90);
+                        } else {
+                            text(formatText(mostRecent.getProperty("title").toString()), xbase + 5, ybase + 100);
+                        }
+                    }
+                } else {
+                    fill(0);
+                    EarthquakeMarker eqMarker = (EarthquakeMarker) lastClicked;
+                    String info = lastClicked.getProperty("title").toString();
+
+                    //Get formatted string to put in legend
+                    String formattedTitle = formatText(info);
+                    text(formattedTitle, xbase + 2, ybase + 35);
+                    text("Cities that are affected:", xbase + 5, ybase + 85);
+                    int ybasse = ybase + 105;
+                    int num = 1;
+                    fill(255, 0, 0);
+                    for (Marker cm : cityMarkers) {
+                        if (!cm.isHidden()) {
+                            text(num + "- " + cm.getProperty("name").toString() + ", " + cm.getProperty("country"), xbase + 10, ybasse);
+                            ybasse += 20;
+                            num++;
+                        }
+                    }
+                    if (num == 1) {
+                        text("None are affected.", xbase + 10, ybasse);
+                    }
+                }
+            } else if (buttonContent.equals("LE")) {
+                fill(255, 250, 240);
+                rect(xbase, ybase, 150, 130, 7);
+                fill(0);
+                textAlign(LEFT, CENTER);
+                textSize(15);
+                text(formatText(lastClicked.getStringProperty("name")), xbase + 25, ybase + 25);
+                textSize(13);
+                float avgAge = getLifeExpPerCountry();
+                text(avgAge != -1 ? "Avg lifespan: " + avgAge : "Do not have data in\n this region", xbase + 5, ybase + 75);
+            } else {
+                fill(255, 250, 240);
+                rect(xbase, ybase, 150, 130, 7);
                 fill(0);
                 textAlign(LEFT, CENTER);
                 textSize(13);
-                text(lastClicked.getStringProperty("name"), xbase + 25, ybase + 10);
+                text(formatText(removeDoubleQuotes(lastClicked.getStringProperty("name"))), xbase + 25, ybase + 15);
                 textSize(11);
-
-                int numOfEQs = 0;
-                float totalMag = 0;
-                Marker mostRecent = null;
-                for (Marker eq : quakeMarkers) {
-                    if (!eq.isHidden()) {
-                        numOfEQs++;
-                        totalMag += Float.parseFloat(eq.getProperty("magnitude").toString());
-                        if (eq.getProperty("age").equals("Past Hour")) {
-                            mostRecent = eq;
-                        } else if (eq.getProperty("age").equals("Past Day")) {
-                            mostRecent = eq;
-                        }
-                        if (mostRecent == null) {
-                            mostRecent = eq;
-                        }
-                    }
-                }
-
-                fill(0);
-
-                if(numOfEQs == 0)
-                {
-                    fill(23, 135, 150);
-                    text("There are no earthquake\nhappened in this area",xbase+5,ybase+35);
-                }
-                else {
-                    text("Number of Nearby EQs: ", xbase + 5, ybase + 35);
-                    text(numOfEQs, textWidth("Number of Nearby EQs: ") + xbase + 5, ybase + 35);
-
-                    text("Avg. Magnitude: ", xbase + 5, ybase + 50);
-                    text((totalMag / numOfEQs), textWidth("Avg. Magnitude: ") + xbase + 5, ybase + 50);
-
-                    text("The Most Recent EQ: ", xbase + 5, ybase + 65);
-                    fill(255, 0, 0);
-                    if (mostRecent == null) {
-                        fill(23, 135, 150);
-                        text("No earthquakes have occurred\nin this area recently", xbase + 5, ybase + 90);
-                    } else {
-                        text(formatText(mostRecent.getProperty("title").toString()), xbase + 5, ybase + 100);
-                    }
-                }
-            } else {
-                fill(0);
-                EarthquakeMarker eqMarker = (EarthquakeMarker) lastClicked;
-                String info = lastClicked.getProperty("title").toString();
-
-                //Get formatted string to put in legend
-                String formattedTitle = formatText(info);
-                text(formattedTitle, xbase + 2, ybase + 35);
-                text("Cities that are affected:", xbase + 5, ybase + 85);
-                int ybasse = ybase + 105;
-                int num = 1;
-                fill(255, 0, 0);
-                for (Marker cm : cityMarkers) {
-                    if (!cm.isHidden()) {
-                        text(num + "- " + cm.getProperty("name").toString() + ", " + cm.getProperty("country"), xbase + 10, ybasse);
-                        ybasse += 20;
-                        num++;
-                    }
-                }
-                if (num == 1) {
-                    text("None are affected.", xbase + 10, ybasse);
-                }
+                text("City: " + removeDoubleQuotes(lastClicked.getStringProperty("city")), xbase + 5, ybase + 50);
+                text("Country: " + removeDoubleQuotes(lastClicked.getStringProperty("country")), xbase + 5, ybase + 80);
+                text("Airport Code: " + removeDoubleQuotes(lastClicked.getStringProperty("code")), xbase + 5, ybase + 110);
             }
         }
+    }
+
+    private float getLifeExpPerCountry() {
+        String currentClickedCountry = lastClicked.getId();
+        for (Marker marker : countryMarkers) {
+            // Find data for country of the current marker
+            if (lifeExpByCountry.containsKey(currentClickedCountry)) {
+                return lifeExpByCountry.get(currentClickedCountry);
+            }
+        }
+        return -1;
     }
 
     private String formatText(String info) {
         StringBuilder formattedText = new StringBuilder(info);
         int maxChars = 13;
-        if(info.length() > maxChars)
-        {
-            formattedText.delete(0,formattedText.length());
+        if (info.length() > maxChars) {
+            formattedText.delete(0, formattedText.length());
             int count = 0;
-            String[]words = info.split("\\s+");
-            for(String word : words)
-            {
-                if(word.length() + count > maxChars)
-                {
+            String[] words = info.split("\\s+");
+            for (String word : words) {
+                if (word.length() + count > maxChars) {
                     formattedText.append("\n");
                     count = 0;
                 }
@@ -364,10 +442,14 @@ public class FinalMap extends PApplet {
             lastSelected = null;
 
         }
-        selectMarkerIfHover(cityMarkers);
-        if(buttonContent!=null) {
-            if (buttonContent.equals("EQ")) {
-                selectMarkerIfHover(quakeMarkers);
+        if (buttonContent == null || !buttonContent.equals("LE")) selectMarkerIfHover(cityMarkers);
+        if (buttonContent != null) {
+            if (buttonContent.equals("EQ") || buttonContent.equals("AP")) {
+                if (buttonContent.equals("EQ")) {
+                    selectMarkerIfHover(quakeMarkers);
+                } else {
+                    selectMarkerIfHover(airportMarkers);
+                }
             }
         }
         //loop();
@@ -379,6 +461,7 @@ public class FinalMap extends PApplet {
         if (lastSelected != null) {
             return;
         }
+
 
         for (Marker m : markers) {
             CommonMarker marker = (CommonMarker) m;
@@ -399,14 +482,77 @@ public class FinalMap extends PApplet {
     @Override
     public void mouseClicked() {
         updateClickButtons();
-
         if (lastClicked != null) {
-            unhideMarkers();
+            if (buttonContent != null) {
+                if (buttonContent.equals("EQ")) {
+                    unhideMakersEQMode();
+                } else if (buttonContent.equals("LE")) {
+                    setCountryMarkersHidden(false);
+                } else {
+                    setRoutesMarkersHidden(true);
+                    setAirportMarkersHidden(false);
+                }
+            }
             lastClicked = null;
-        } else {
-            checkEarthquakesForClick();
-            if (lastClicked == null) {
+        }
+        if (buttonContent != null) {
+            if (buttonContent.equals("EQ")) {
+                checkEarthquakesForClick();
                 checkCitiesForClick();
+            } else if (buttonContent.equals("LE")) {
+                getCountryClicked();
+            } else {
+                getAirPortClicked();
+            }
+        }
+    }
+
+    private void getAirPortClicked() {
+        if (lastClicked != null) return;
+        // Loop over the earthquake markers to see if one of them is selected
+        for (Marker marker : airportMarkers) {
+            if (!marker.isHidden() && marker.isInside(map, mouseX, mouseY)) {
+                lastClicked = marker;
+                //Trim quotes in airport code
+                String airportCode = removeDoubleQuotes(lastClicked.getStringProperty("code"));
+                Set<String> visibleAirPortCode = new HashSet<>();
+                visibleAirPortCode.add(airportCode);
+                for (Marker route : routeMarkers) {
+                    if (route.getStringProperty("SID").equals(airportCode)) {
+                        route.setHidden(false);
+                        visibleAirPortCode.add(route.getStringProperty("DID"));
+                    } else route.setHidden(true);
+                }
+                for (Marker airport : airportMarkers) {
+                    if (!visibleAirPortCode.contains(airport.getStringProperty("code").substring(1, airport.getStringProperty("code").length() - 1))) {
+                        airport.setHidden(true);
+                    }
+                }
+
+                return;
+            }
+        }
+    }
+
+    private String removeDoubleQuotes(String s)
+    {
+        //Just trim 1 char at beginning and 1 char at the end of the string
+        return s.substring(1,s.length()-1);
+    }
+
+    private void getCountryClicked() {
+        if (lastClicked != null) return;
+        // Loop over the earthquake markers to see if one of them is selected
+        for (Marker marker : countryMarkers) {
+            if (!marker.isHidden() && marker.isInside(map, mouseX, mouseY)) {
+                lastClicked = marker;
+                // Hide all the other earthquakes and hide
+                for (Marker country : countryMarkers) {
+                    if (country != lastClicked) {
+                        country.setHidden(true);
+                    }
+                }
+                return;
             }
         }
     }
@@ -464,7 +610,7 @@ public class FinalMap extends PApplet {
     }
 
     // loop over and unhide all markers
-    private void unhideMarkers() {
+    private void unhideMakersEQMode() {
         for (Marker marker : quakeMarkers) {
             marker.setHidden(false);
         }
@@ -473,6 +619,7 @@ public class FinalMap extends PApplet {
             marker.setHidden(false);
         }
     }
+
 
     // helper method to draw key in GUI
     private void addKey() {
@@ -538,17 +685,15 @@ public class FinalMap extends PApplet {
                 strokeWeight(2);
                 line(centerx - 8, centery - 8, centerx + 8, centery + 8);
                 line(centerx - 8, centery + 8, centerx + 8, centery - 8);
-            } else if(buttonContent.equals("AP")) {
+            } else if (buttonContent.equals("AP")) {
                 textSize(12);
                 fill(11);
                 ellipse(xbase + 35, ybase + 100, 5, 5);
                 text("Airport", xbase + 50, ybase + 100);
                 text("Route", xbase + 50, ybase + 130);
                 fill(130);
-                line(ybase, ybase + 130, 70, ybase+130);
-            }
-            else if(buttonContent.equals("LE"))
-            {
+                line(ybase, ybase + 130, 70, ybase + 130);
+            } else if (buttonContent.equals("LE")) {
                 textSize(12);
                 fill(11);
                 text("Approximate 40", xbase + 40, ybase + 100);
@@ -561,12 +706,10 @@ public class FinalMap extends PApplet {
 
             }
 
-        }
-        else
-        {
+        } else {
             fill(0);
             textSize(13);
-            text("SELECT A MODE\nTO DISPLAY \nINFORMATION HERE",xbase+11,ybase+110);
+            text("SELECT A MODE\nTO DISPLAY \nINFORMATION HERE", xbase + 11, ybase + 110);
         }
     }
 
@@ -656,18 +799,17 @@ public class FinalMap extends PApplet {
         int space = 25;
         textSize(13);
 
-            fill(255, 250, 240);
-            rect(25, FIRST_BUTTON_Y_AXIS, 150, 60, 7);
-            rect(25, FIRST_BUTTON_Y_AXIS + HOZ_GAP_BUTTONS, 150, 60, 7);
-            rect(25, FIRST_BUTTON_Y_AXIS + HOZ_GAP_BUTTONS * 2, 150, 60, 7);
+        fill(255, 250, 240);
+        rect(25, FIRST_BUTTON_Y_AXIS, 150, 60, 7);
+        rect(25, FIRST_BUTTON_Y_AXIS + HOZ_GAP_BUTTONS, 150, 60, 7);
+        rect(25, FIRST_BUTTON_Y_AXIS + HOZ_GAP_BUTTONS * 2, 150, 60, 7);
 
-            fill(0);
-            textAlign(LEFT, CENTER);
-            text("EARTHQUAKES MODE", space + 11, FIRST_BUTTON_Y_AXIS + space);
-            text("LIFE EXPECTANCY MODE", space + 2, FIRST_BUTTON_Y_AXIS + HOZ_GAP_BUTTONS + space);
-            text("AIRPORT MODE", space + 27, FIRST_BUTTON_Y_AXIS + HOZ_GAP_BUTTONS * 2 + space);
-        if(buttonsClicked)
-        {
+        fill(0);
+        textAlign(LEFT, CENTER);
+        text("EARTHQUAKES MODE", space + 11, FIRST_BUTTON_Y_AXIS + space);
+        text("LIFE EXPECTANCY MODE", space + 2, FIRST_BUTTON_Y_AXIS + HOZ_GAP_BUTTONS + space);
+        text("AIRPORT MODE", space + 27, FIRST_BUTTON_Y_AXIS + HOZ_GAP_BUTTONS * 2 + space);
+        if (buttonsClicked) {
             fill(127, 251, 136);
             switch (buttonContent) {
                 case "EQ":
@@ -688,6 +830,7 @@ public class FinalMap extends PApplet {
             }
         }
     }
+
 
     //Helper method to color each country based on life expectancy
     //Red-orange indicates low (near 40)

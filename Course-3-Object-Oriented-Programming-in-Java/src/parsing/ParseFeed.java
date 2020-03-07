@@ -215,7 +215,11 @@ public class ParseFeed {
 				route.putProperty("source", columns[3]);
 				// "destination property" -- OpenFlights identifier
 				route.putProperty("destination", columns[5]);
-				
+				//set src and des for route
+				if(!columns[2].equals("\\N") && !columns[4].equals("\\N")) {
+					route.putProperty("SID", columns[2]);
+					route.putProperty("DID", columns[4]);
+				}
 				routes.add(route);
 			}
 		}

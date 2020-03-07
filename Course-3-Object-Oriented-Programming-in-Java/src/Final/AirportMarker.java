@@ -55,7 +55,7 @@ public class AirportMarker extends CommonMarker {
 	}
 
 	public String getTitle() {
-		return (String) getProperty("title");
+		return (String) getProperty("name");
 
 	}
 }
