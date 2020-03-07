@@ -12,6 +12,7 @@ import de.fhpotsdam.unfolding.marker.AbstractShapeMarker;
 import de.fhpotsdam.unfolding.marker.Marker;
 import de.fhpotsdam.unfolding.marker.MultiMarker;
 import de.fhpotsdam.unfolding.marker.SimpleLinesMarker;
+import de.fhpotsdam.unfolding.providers.Google;
 import de.fhpotsdam.unfolding.providers.MBTilesMapProvider;
 import de.fhpotsdam.unfolding.providers.OpenStreetMap;
 import de.fhpotsdam.unfolding.utils.MapUtils;
@@ -89,7 +90,7 @@ public class FinalMap extends PApplet {
             map = new UnfoldingMap(this, 200, 50, 650, 600, new MBTilesMapProvider(mbTilesString));
             earthquakesURL = "2.5_week.atom";  // The same feed, but saved August 7, 2015
         } else {
-//            map = new UnfoldingMap(this, 200, 50, 650, 600, new Google.GoogleMapProvider());
+            //map = new UnfoldingMap(this, 200, 50, 650, 600, new Google.GoogleMapProvider());
             map = new UnfoldingMap(this, 200, 50, 650, 600, new OpenStreetMap.OpenStreetMapProvider());
             // IF YOU WANT TO TEST WITH A LOCAL FILE, uncomment the next line
             //earthquakesURL = "2.5_week.atom";
@@ -99,7 +100,7 @@ public class FinalMap extends PApplet {
         // FOR TESTING: Set earthquakesURL to be one of the testing files by uncommenting
         // one of the lines below.  This will work whether you are online or offline
         //earthquakesURL = "test1.atom";
-        earthquakesURL = "test2.atom";
+        //earthquakesURL = "test2.atom";
 
         // Uncomment this line to take the quiz
         //earthquakesURL = "quiz2.atom";
@@ -364,7 +365,7 @@ public class FinalMap extends PApplet {
                         }
                     }
                     if (num == 1) {
-                        text("None are affected.", xbase + 10, ybasse);
+                        text("No city was affected.", xbase + 10, ybasse);
                     }
                 }
             } else if (buttonContent.equals("LE")) {
