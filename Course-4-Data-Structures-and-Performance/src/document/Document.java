@@ -6,9 +6,11 @@ package document;
  * @author UC San Diego Intermediate Programming MOOC team
  */
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 public abstract class Document {
 
@@ -64,7 +66,22 @@ public abstract class Document {
     // TODO: Implement this method so that you can call it from the
     // getNumSyllables method in BasicDocument (module 2) and
     // EfficientDocument (module 3).
-    return 0;
+    List<Character> vowels =  new ArrayList<>(Arrays.asList('a', 'e', 'u', 'i', 'o', 'y'));
+    int count = 0;
+    boolean isVowel = false;
+    char [] lowerCaseLetters = word.toLowerCase().toCharArray();
+    for (char c : lowerCaseLetters) {
+      if (vowels.contains(c)) {
+        if (!isVowel) {
+          count++;
+          isVowel = true;
+        }
+      } else isVowel = false;
+    }
+    vowels.remove(Character.valueOf('e'));
+    if (lowerCaseLetters[lowerCaseLetters.length - 1] != 'e'
+            && Stream.of(lowerCaseLetters).noneMatch(vowels::contains)) count--;
+    return count;
   }
 
   /**
