@@ -5,11 +5,13 @@ package document;
  *
  * @author UC San Diego Intermediate Programming MOOC team
  */
+import javax.print.Doc;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public abstract class Document {
@@ -66,10 +68,10 @@ public abstract class Document {
     // TODO: Implement this method so that you can call it from the
     // getNumSyllables method in BasicDocument (module 2) and
     // EfficientDocument (module 3).
-    List<Character> vowels =  new ArrayList<>(Arrays.asList('a', 'e', 'u', 'i', 'o', 'y'));
+    List<Character> vowels = Arrays.asList('a', 'e', 'u', 'i', 'o', 'y');
     int count = 0;
     boolean isVowel = false;
-    char [] lowerCaseLetters = word.toLowerCase().toCharArray();
+    char[] lowerCaseLetters = word.toLowerCase().toCharArray();
     for (char c : lowerCaseLetters) {
       if (vowels.contains(c)) {
         if (!isVowel) {
@@ -78,9 +80,11 @@ public abstract class Document {
         }
       } else isVowel = false;
     }
-    vowels.remove(Character.valueOf('e'));
-    if (lowerCaseLetters[lowerCaseLetters.length - 1] != 'e'
-            && Stream.of(lowerCaseLetters).noneMatch(vowels::contains)) count--;
+
+    if (lowerCaseLetters[lowerCaseLetters.length - 1] == 'e'
+        && count > 1  //has another vowels(literally in the string we are processing) except e at the end of strings
+        && !vowels.contains(lowerCaseLetters[lowerCaseLetters.length - 2]) //alone vowel "e"
+    ) count--;
     return count;
   }
 
@@ -142,6 +146,10 @@ public abstract class Document {
   public double getFleschScore() {
     // TODO: You will play with this method in week 1, and
     // then implement it in week 2
-    return 0.0;
+    int words = getNumWords();
+    int sentences = getNumSentences();
+    int syllables = getNumSyllables();
+    //Formula
+    return 206.835 - 1.015 * words / sentences - 84.6 * syllables / words;
   }
 }

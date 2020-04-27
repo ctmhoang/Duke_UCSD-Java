@@ -51,7 +51,7 @@ public class BasicDocument extends Document {
   public int getNumSentences() {
     // TODO: Implement this method.  See the Module 2 support videos
     // if you need help.
-    return getTokens("[.!?]+").size();
+    return getTokens("[^.!?]+").size();
   }
 
   /**
@@ -73,7 +73,12 @@ public class BasicDocument extends Document {
     // expression for the syllable counting.  We recommend you implement
     // the helper function countSyllables in Document.java using a loop,
     // and then call it here on each word.
-    return  getTokens("[a-zA-Z]+").stream().mapToInt(this::countSyllables).sum();
+    return getTokens("[a-zA-Z]+").stream().mapToInt(this::countSyllables).sum();
+    //Regex solution
+    //List<String> tokens = getTokens("[aeiouyAEIOUY]+");
+    //List<String> loneEs = getTokens("[^aeiouyAEIOUY]+[eE]\\b");
+    //List<String> singleEs = getTokens("\\b[^aeiouyAEIOUY]*[eE]\\b");
+    //return tokens.size() - (loneEs.size() - singleEs.size());
   }
 
   /* The main method for testing this class.
