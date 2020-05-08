@@ -37,6 +37,7 @@ public class DocumentBenchmarking {
     // and prints out timing results as described in the assignment
     // instructions and following the pseudocode below.
 
+    System.out.printf("%-20s\t%-20s\t%-20s\n","NumberOfChars","BasicTime","EfficientTime");
     long strTimer;
     long endTimer;
     double basicDuration;
@@ -78,7 +79,7 @@ public class DocumentBenchmarking {
 
       effDuration = (endTimer - strTimer)/1_000_000_000D;
 
-      System.out.printf("%d\t%f\t%f\n",numToCheck,basicDuration,effDuration);
+      System.out.printf("%-20d\t%-20f\t%-20f\n",numToCheck,basicDuration,effDuration);
     }
   }
 
