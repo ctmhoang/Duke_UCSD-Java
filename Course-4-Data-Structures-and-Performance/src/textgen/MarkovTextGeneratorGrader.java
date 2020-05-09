@@ -10,7 +10,7 @@ public class MarkovTextGeneratorGrader {
     public static void main(String[] args) {
         try {
             MarkovTextGenerator gen = new MarkovTextGeneratorLoL(new Random());
-            
+
             int incorrect = 0;
             int tests = 0;
             String feedback = "";
