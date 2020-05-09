@@ -54,8 +54,9 @@ public class MyLinkedList<E> extends AbstractList<E> {
   public void add(int index, E element) {
     // DONE: Implement this method
     if (element == null) throw new NullPointerException("Element cannot be null");
-    LLNode<E> prevNode = size == index ? tail.prev : getNodeAt(index);
-    LLNode<E> nextNode = prevNode.next;
+    if(index < 0 || index > size) throw  new IndexOutOfBoundsException("Index cannot be negative");
+    LLNode<E> nextNode;
+    LLNode<E> prevNode = size == index ? (nextNode = tail).prev : (nextNode = getNodeAt(index)).prev;
 
     LLNode<E> insertNode = new LLNode<>(prevNode, element, nextNode);
     size++;

@@ -2,8 +2,6 @@ package textgen;
 
 import static org.junit.Assert.*;
 
-import java.util.LinkedList;
-
 import org.junit.Before;
 import org.junit.Test;
 
@@ -94,20 +92,44 @@ public class MyLinkedListTester {
     assertEquals("Remove: check element 0 is correct ", (Integer) 21, list1.get(0));
     assertEquals("Remove: check size is correct ", 2, list1.size());
 
-    // TODO: Add more tests here
+    // DONE: Add more tests here
+    LLNode<Integer> tmp = list1.tail;
+    int i = list1.size;
+
+    while (i >= 0) {
+      tmp = tmp.prev;
+      i--;
+    }
+    assertNull("Pointer is not correctly set", tmp.data);
+    //Add more test :((
+    try{
+      list1.remove(123123);
+      fail("Cannot remove with index larger than size");
+    }catch (IndexOutOfBoundsException ignored){}
+
+    try {
+      list1.remove(-1);
+      fail("Check out of bounds");
+    } catch (IndexOutOfBoundsException ignored) {}
+
   }
 
   /** Test adding an element into the end of the list, specifically public boolean add(E element) */
   @Test
   public void testAddEnd() {
-    // TODO: implement this test
-
+    // DONE: implement this test
+    boolean isAdded = list1.add(123);
+    assertEquals("Remove: Added to end is correct ", 123, list1.get(list1.size - 1).intValue());
   }
 
   /** Test the size of the list */
   @Test
   public void testSize() {
-    // TODO: implement this test
+    // DONE: implement this test
+    assertEquals("Size: before add", 3, list1.size);
+    list1.remove(1);
+    list1.remove(0);
+    assertEquals("Size: before remove 2 nodes", 1, list1.size);
   }
 
   /**
@@ -116,16 +138,53 @@ public class MyLinkedListTester {
    */
   @Test
   public void testAddAtIndex() {
-    // TODO: implement this test
+    // DONE: implement this test
+    list1.add(2, 123);
+    assertEquals("Add: 123 to index 2", 123, list1.get(2).intValue());
+    list1.add(0, 777);
+    assertEquals("Add: 777 to index 0", 777, list1.get(0).intValue());
+    //Add more test :((
+    try{
+      list1.add(-123,12);
+      fail("Cannot add value with index negative");
+    }catch (IndexOutOfBoundsException ignored){}
+
+    try{
+      list1.add(123123,12);
+      fail("Cannot add value with index larger than size");
+    }catch (IndexOutOfBoundsException ignored){}
+
+    try{
+      list1.add(0,null);
+      fail("Cannot set value to null");
+    }catch (NullPointerException ignored){}
+
 
   }
 
   /** Test setting an element in the list */
   @Test
   public void testSet() {
-    // TODO: implement this test
+    // DONE: implement this test
+    list1.set(0, 13);
+    assertEquals("Set: 13 to index 0", 13, list1.get(0).intValue());
+    //Add more test :((
+    try{
+      list1.set(123123,12);
+      fail("Cannot set with index larger than size");
+    }catch (IndexOutOfBoundsException ignored){}
 
-  }
+    try {
+      list1.set(-1,14234);
+      fail("Check out of bounds");
+    } catch (IndexOutOfBoundsException ignored) {}
+
+      try {
+        list1.set(0,null);
+        fail("Cannot set null value to nodes data");
+      } catch (NullPointerException ignored) {}
+
+    }
 
   // TODO: Optionally add more test methods.
 
