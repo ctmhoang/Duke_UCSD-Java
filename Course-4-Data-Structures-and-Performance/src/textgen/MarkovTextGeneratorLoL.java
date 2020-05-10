@@ -1,9 +1,6 @@
 package textgen;
 
-import com.sun.org.apache.xerces.internal.xs.StringList;
-
 import java.util.*;
-
 
 /**
  * An implementation of the MTG interface that uses a list of lists.
@@ -32,34 +29,35 @@ public class MarkovTextGeneratorLoL implements MarkovTextGenerator {
   public void train(String sourceText) {
     // DONE: Implement this method
     List<String> words = Arrays.asList(sourceText.split("\\s+"));
-
+    if(words.get(0).equals("") && words.size() == 1)return;
     starter = words.get(0);
     String prevWord = starter;
 
-    for(String word : words.subList(1,words.size() - 1))
-    {
-      ListNode wordNode = getListNode(prevWord);
-      wordNode.addNextWord(word);
+    if (words.size() > 1) {
+      for (String word : words.subList(1, words.size() - 1)) {
+        ListNode wordNode = getListNode(prevWord);
+        wordNode.addNextWord(word);
 
-      prevWord = word;
+        prevWord = word;
+      }
+
     }
-    //Add starter word to be next word for the last word
+    // Add starter word to be next word for the last word
     getListNode(prevWord).addNextWord(starter);
-
-
   }
 
   /** Generate the number of words requested. */
   @Override
   public String generateText(int numWords) {
     // DONE: Implement this method
+    if (wordList.size() == 0 || numWords == 0) return "";
+    else if (numWords < 0) throw new IllegalArgumentException("numWords cannot be smaller than 0");
     String currWord = starter;
     StringBuilder res = new StringBuilder(currWord);
-    while (numWords != 0)
-    {
-      currWord =  getListNode(currWord).getRandomNextWord(rnGenerator);
+    while (numWords > 1) {
+      currWord = getListNode(currWord).getRandomNextWord(rnGenerator);
       res.append(" ").append(currWord);
-      numWords --;
+      numWords--;
     }
     return res.toString();
   }
@@ -79,22 +77,21 @@ public class MarkovTextGeneratorLoL implements MarkovTextGenerator {
   public void retrain(String sourceText) {
     // DONE: Implement this method.
     wordList = new LinkedList<>();
-    starter = null;
-   train(sourceText);
+    starter = "";
+    train(sourceText);
   }
 
   // DONE: Add any private helper methods you need here.
-  private ListNode getListNode(String word)
-  {
-    Optional<ListNode> tmpSearch  =  wordList.stream().parallel().filter(k-> k.getWord().equals(word)).findAny();
+  private ListNode getListNode(String word) {
+    Optional<ListNode> tmpSearch =
+        wordList.stream().parallel().filter(k -> k.getWord().equals(word)).findAny();
     ListNode wordNode;
-    if (!tmpSearch.isPresent()){
+    if (!tmpSearch.isPresent()) {
       wordList.add(wordNode = new ListNode(word));
-    }else wordNode = tmpSearch.get();
+    } else wordNode = tmpSearch.get();
 
     return wordNode;
   }
-
 
   /**
    * This is a minimal set of tests. Note that it can be difficult to test methods/classes with
