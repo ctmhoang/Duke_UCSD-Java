@@ -34,7 +34,7 @@ public class MarkovTextGeneratorLoL implements MarkovTextGenerator {
     String prevWord = starter;
 
     if (words.size() > 1) {
-      for (String word : words.subList(1, words.size() - 1)) {
+      for (String word : words.subList(1, words.size())) { //LOL upper is exclusive :)))))
         ListNode wordNode = getListNode(prevWord);
         wordNode.addNextWord(word);
 

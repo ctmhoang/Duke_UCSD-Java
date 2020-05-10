@@ -1,8 +1,7 @@
 package textgen;
 
 import java.io.FileNotFoundException;
-import java.util.Random;
-import java.util.HashMap;
+import java.util.*;
 import java.io.PrintWriter;
 
 public class MarkovTextGeneratorGrader {
@@ -58,6 +57,9 @@ public class MarkovTextGeneratorGrader {
 
     boolean found = true;
     feedback += "\n** Test #5: Checking that every word is used at least once...";
+    Set<String> a = new HashSet<>(Arrays.asList(input.split("\\s+")));
+    System.out.println(a.size() + "==" + wordCounts.size());
+    assert (a.size() == wordCounts.size());
     feedback += "Done. ";
 
     found = true;
