@@ -2,40 +2,42 @@ package spelling;
 
 import java.util.TreeSet;
 
-/**
- * @author UC San Diego Intermediate MOOC team
- *
- */
-public class DictionaryBST implements Dictionary 
-{
-   private TreeSet<String> dict;
-	
-    // TODO: Implement the dictionary interface using a TreeSet.  
- 	// You'll need a constructor here
-	
-    
-    /** Add this word to the dictionary.  Convert it to lowercase first
-     * for the assignment requirements.
-     * @param word The word to add
-     * @return true if the word was added to the dictionary 
-     * (it wasn't already there). */
-    public boolean addWord(String word) {
-    	// TODO: Implement this method
-        return false;
-    }
+/** @author UC San Diego Intermediate MOOC team */
+public class DictionaryBST implements Dictionary {
+  private TreeSet<String> dict;
+
+  // DONE: Implement the dictionary interface using a TreeSet.
+  // You'll need a constructor here
 
 
-    /** Return the number of words in the dictionary */
-    public int size()
-    {
-    	// TODO: Implement this method
-        return 0;
-    }
+  public DictionaryBST()
+  {
+    dict = new TreeSet<>();
+  }
 
-    /** Is this a word according to this dictionary? */
-    public boolean isWord(String s) {
-    	//TODO: Implement this method
-        return false;
-    }
+  /**
+   * Add this word to the dictionary. Convert it to lowercase first for the assignment requirements.
+   *
+   * @param word The word to add
+   * @return true if the word was added to the dictionary (it wasn't already there).
+   */
+  public boolean addWord(String word) {
+    // DONE: Implement this method
+    word = word.toLowerCase();
+    if(dict.contains(word)) return  false;
+    dict.add(word);
+    return true;
+  }
 
+  /** Return the number of words in the dictionary */
+  public int size() {
+    // DONE: Implement this method
+    return dict.size();
+  }
+
+  /** Is this a word according to this dictionary? */
+  public boolean isWord(String s) {
+    // DONE: Implement this method
+    return dict.contains(s.toLowerCase());
+  }
 }
