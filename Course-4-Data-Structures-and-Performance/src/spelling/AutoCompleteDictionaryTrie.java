@@ -1,6 +1,7 @@
 package spelling;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * An trie data structure that implements the Dictionary and the AutoComplete ADT
@@ -128,7 +129,13 @@ public class AutoCompleteDictionaryTrie implements Dictionary, AutoComplete {
         numCompletions--;
       }
       //       Add all of its child nodes to the back of the queue
-      queue.addAll(tmp.getChildren());
+      // Grader do not have getChildren method in TrieNode class
+      //      queue.addAll(tmp.getChildren());
+      queue.addAll(
+          tmp.getValidNextCharacters()
+              .parallelStream()
+              .map(tmp::getChild)
+              .collect(Collectors.toCollection(LinkedList::new)));
     }
     // Return the list of completions
     return res;
