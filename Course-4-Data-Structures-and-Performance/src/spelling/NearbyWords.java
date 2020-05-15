@@ -2,6 +2,7 @@
 package spelling;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /** @author UC San Diego Intermediate MOOC team */
@@ -109,8 +110,8 @@ public class NearbyWords implements SpellingSuggest {
   public List<String> suggestions(String word, int numSuggestions) {
 
     // initial variables
-    List<String> queue = new LinkedList<String>(); // String to explore
-    HashSet<String> visited = new HashSet<String>(); // to avoid exploring the same
+    Queue<String> queue = new LinkedList<String>(); // String to explore
+    Set<String> visited = new HashSet<String>(); // to avoid exploring the same
     // string multiple times
     List<String> retList = new LinkedList<String>(); // words to return
 
@@ -118,7 +119,20 @@ public class NearbyWords implements SpellingSuggest {
     queue.add(word);
     visited.add(word);
 
-    // TODO: Implement the remainder of this method, see assignment for algorithm
+    // DONE: Implement the remainder of this method, see assignment for algorithm
+    while (!queue.isEmpty() && numSuggestions != 0) {
+      String tmp = queue.remove();
+      visited.add(tmp);
+      List<String> mulTmp = distanceOne(tmp, false).parallelStream().filter(v -> !visited.contains(v)).collect(Collectors.toCollection(ArrayList::new));
+      queue.addAll(mulTmp);
+      List<String> validWords =
+          mulTmp.parallelStream()
+              .filter(v -> dict.isWord(v))
+              .limit(numSuggestions)
+              .collect(Collectors.toCollection(ArrayList::new));
+      numSuggestions -= validWords.size();
+      retList.addAll(validWords);
+    }
 
     return retList;
   }
