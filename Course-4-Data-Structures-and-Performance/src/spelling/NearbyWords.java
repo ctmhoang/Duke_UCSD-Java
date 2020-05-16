@@ -122,14 +122,20 @@ public class NearbyWords implements SpellingSuggest {
     // DONE: Implement the remainder of this method, see assignment for algorithm
     while (!queue.isEmpty() && numSuggestions != 0) {
       String tmp = queue.remove();
-      visited.add(tmp);
-      List<String> mulTmp = distanceOne(tmp, false).parallelStream().filter(v -> !visited.contains(v)).collect(Collectors.toCollection(ArrayList::new));
+      List<String> mulTmp =
+          distanceOne(tmp, false)
+              .parallelStream()
+              .filter(v -> !visited.contains(v))
+              .collect(Collectors.toCollection(ArrayList::new));
       queue.addAll(mulTmp);
+      // Deeper lever do not have word from child's upper lever
+      visited.addAll(mulTmp);
       List<String> validWords =
-          mulTmp.parallelStream()
+          mulTmp
+              .parallelStream()
               .filter(v -> dict.isWord(v))
               .limit(numSuggestions)
-              .collect(Collectors.toCollection(ArrayList::new));
+              .collect(Collectors.toCollection(LinkedList::new));
       numSuggestions -= validWords.size();
       retList.addAll(validWords);
     }
