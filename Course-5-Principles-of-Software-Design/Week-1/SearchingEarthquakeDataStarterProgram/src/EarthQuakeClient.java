@@ -12,7 +12,8 @@ public class EarthQuakeClient {
     {
 //        createCSV();
 //        bigQuakes();
-        closeToMe();
+//        closeToMe();
+        quakesOfDepth();
     }
 
     public static ArrayList<QuakeEntry> filterByMagnitude(ArrayList<QuakeEntry> quakeData,
@@ -84,5 +85,25 @@ public class EarthQuakeClient {
             System.out.println(qe);
         }
     }
-    
+
+    //return an ArrayList of type QuakeEntry of all the earthquakes from quakeData whose depth is between minDepth and maxDepth, exclusive
+    public static ArrayList<QuakeEntry> filterByDepth(ArrayList<QuakeEntry> quakeData, double minDepth, double maxDepth)
+    {
+        return quakeData.stream().filter(quakeEntry -> quakeEntry.getDepth() > minDepth && quakeEntry.getDepth() < maxDepth).collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    public static void quakesOfDepth()
+    {
+        EarthQuakeParser parser = new EarthQuakeParser();
+        ArrayList<QuakeEntry> list = parser.read("data/nov20quakedatasmall.atom");
+        System.out.println("read data for "+ list.size()+" quakes");
+        double min = -10_000;
+        double max = -5_000;
+        System.out.println("Find the quakes depth between " + min +" and "+ max);
+
+        List<QuakeEntry> resList = filterByDepth(list,min,max);
+        resList.forEach(System.out::println);
+        System.out.printf("Found %d quakes that match that criteria",resList.size());
+
+    }
 }
