@@ -13,7 +13,8 @@ public class EarthQuakeClient {
 //        createCSV();
 //        bigQuakes();
 //        closeToMe();
-        quakesOfDepth();
+//        quakesOfDepth();
+        quakesByPhrase();
     }
 
     public static ArrayList<QuakeEntry> filterByMagnitude(ArrayList<QuakeEntry> quakeData,
@@ -105,5 +106,39 @@ public class EarthQuakeClient {
         resList.forEach(System.out::println);
         System.out.printf("Found %d quakes that match that criteria",resList.size());
 
+    }
+
+    //“start” means the phrase must start the title, “end” means the phrase must end the title and “any” means the phrase is a substring anywhere in the title.
+    public static ArrayList<QuakeEntry> filterByPhrase(ArrayList<QuakeEntry> quakeData, String where, String phrase)
+    {
+        switch (where)
+        {
+            case "start":
+                return quakeData.stream().filter(quakeEntry -> quakeEntry.getInfo().startsWith(phrase)).collect(Collectors.toCollection(ArrayList::new));
+               case "end":
+                return quakeData.stream().filter(quakeEntry -> quakeEntry.getInfo().endsWith(phrase)).collect(Collectors.toCollection(ArrayList::new));
+            case "any":
+                return quakeData.stream().filter(quakeEntry -> quakeEntry.getInfo().contains(phrase)).collect(Collectors.toCollection(ArrayList::new));
+            default:
+                return null;
+        }
+    }
+    public static void quakesByPhrase()
+    {
+        EarthQuakeParser parser = new EarthQuakeParser();
+        ArrayList<QuakeEntry> list = parser.read("data/nov20quakedatasmall.atom");
+        System.out.println("read data for "+list.size()+" quakes");
+
+        ArrayList<QuakeEntry> caliEndQuakes = filterByPhrase(list,"end","California");
+        caliEndQuakes.forEach(System.out::println);
+        System.out.printf("Found %d quakes that match California at end\n",caliEndQuakes.size());
+
+        ArrayList<QuakeEntry> canAnyQuakes = filterByPhrase(list,"any","Can");
+        caliEndQuakes.forEach(System.out::println);
+        System.out.printf("Found %d quakes that match Can at any\n",canAnyQuakes.size());
+
+        ArrayList<QuakeEntry> explosionStartQuakes = filterByPhrase(list,"start","Explosion");
+        caliEndQuakes.forEach(System.out::println);
+        System.out.printf("Found %d quakes that match Explosion at start",explosionStartQuakes.size());
     }
 }
