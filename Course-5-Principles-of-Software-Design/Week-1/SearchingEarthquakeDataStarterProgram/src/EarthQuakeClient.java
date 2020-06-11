@@ -141,4 +141,6 @@ public class EarthQuakeClient {
         caliEndQuakes.forEach(System.out::println);
         System.out.printf("Found %d quakes that match Explosion at start",explosionStartQuakes.size());
     }
+
+
 }
