@@ -126,20 +126,20 @@ public class EarthQuakeClient {
     public static void quakesByPhrase()
     {
         EarthQuakeParser parser = new EarthQuakeParser();
-        ArrayList<QuakeEntry> list = parser.read("data/nov20quakedatasmall.atom");
+        ArrayList<QuakeEntry> list = parser.read("data/nov20quakedata.atom");
         System.out.println("read data for "+list.size()+" quakes");
 
-        ArrayList<QuakeEntry> caliEndQuakes = filterByPhrase(list,"end","California");
-        caliEndQuakes.forEach(System.out::println);
-        System.out.printf("Found %d quakes that match California at end\n",caliEndQuakes.size());
+//        ArrayList<QuakeEntry> caliEndQuakes = filterByPhrase(list,"end","California");
+//        caliEndQuakes.forEach(System.out::println);
+//        System.out.printf("Found %d quakes that match California at end\n",caliEndQuakes.size());
 
-        ArrayList<QuakeEntry> canAnyQuakes = filterByPhrase(list,"any","Can");
-        caliEndQuakes.forEach(System.out::println);
+        ArrayList<QuakeEntry> canAnyQuakes = filterByPhrase(list,"any","Creek");
+        canAnyQuakes.forEach(System.out::println);
         System.out.printf("Found %d quakes that match Can at any\n",canAnyQuakes.size());
 
-        ArrayList<QuakeEntry> explosionStartQuakes = filterByPhrase(list,"start","Explosion");
-        caliEndQuakes.forEach(System.out::println);
-        System.out.printf("Found %d quakes that match Explosion at start",explosionStartQuakes.size());
+//        ArrayList<QuakeEntry> explosionStartQuakes = filterByPhrase(list,"start","Explosion");
+//        explosionStartQuakes.forEach(System.out::println);
+//        System.out.printf("Found %d quakes that match Explosion at start",explosionStartQuakes.size());
     }
 
 
