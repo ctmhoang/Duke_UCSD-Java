@@ -26,7 +26,7 @@ public class MatchAllFilter implements Filter
     public String getName()
     {
         StringJoiner res = new StringJoiner(" ");
-        filters.parallelStream().map(Filter::getName).forEach(res::add);
+        filters.stream().map(Filter::getName).forEach(res::add);
         return res.toString();
     }
 }

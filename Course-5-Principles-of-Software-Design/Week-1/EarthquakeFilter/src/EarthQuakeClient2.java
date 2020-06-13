@@ -8,8 +8,8 @@ public class EarthQuakeClient2
     public static void main(String[] args)
     {
 //        quakesWithFilter();
-        testMatchAllFilter();
-//        testMatchAllFilter2();
+//        testMatchAllFilter();
+        testMatchAllFilter2();
     }
 
     public EarthQuakeClient2()
@@ -103,21 +103,21 @@ public class EarthQuakeClient2
         //Copy from testMatchAllFilter method
         //copy from quakeWithFilter method
         EarthQuakeParser parser = new EarthQuakeParser();
-        String source = "data/nov20quakedatasmall.atom";
+        String source = "data/nov20quakedata.atom";
         ArrayList<QuakeEntry> list = parser.read(source);
         System.out.println("read data for " + list.size() + " quakes");
 
         MatchAllFilter maf = new MatchAllFilter();
         //End
 
-        maf.addFilter(new MagnitudeFilter(0,3));
+        maf.addFilter(new MagnitudeFilter(0,5));
 
-        Location tulsa = new Location(36.1314, -95.9372);
-        maf.addFilter(new DistanceFilter(tulsa,10_000_000));
+        Location tulsa = new Location(55.7308, 9.1153);
+        maf.addFilter(new DistanceFilter(tulsa,3_000_000));
 
-        maf.addFilter(new PhraseFilter("Ca","any"));
+        maf.addFilter(new PhraseFilter("e","any"));
 
-        filter(list,maf).parallelStream().forEach(System.out::println);
+        System.out.println(filter(list,maf).parallelStream().count());
     }
 
 }
