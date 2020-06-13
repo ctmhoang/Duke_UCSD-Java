@@ -7,7 +7,9 @@ public class EarthQuakeClient2
 
     public static void main(String[] args)
     {
-        quakesWithFilter();
+//        quakesWithFilter();
+        testMatchAllFilter();
+//        testMatchAllFilter2();
     }
 
     public EarthQuakeClient2()
@@ -76,6 +78,46 @@ public class EarthQuakeClient2
                     qe.getMagnitude(),
                     qe.getInfo());
         }
+    }
+
+    public static void testMatchAllFilter()
+    {
+        //copy from quakeWithFilter method
+        EarthQuakeParser parser = new EarthQuakeParser();
+        String source = "data/nov20quakedatasmall.atom";
+        ArrayList<QuakeEntry> list = parser.read(source);
+        System.out.println("read data for " + list.size() + " quakes");
+
+        MatchAllFilter maf = new MatchAllFilter();
+        maf.addFilter(new MagnitudeFilter(0,2));
+        maf.addFilter(new DepthFilter(-100_000, -10_000));
+        maf.addFilter(new PhraseFilter("a","any"));
+        filter(list,maf).parallelStream().forEach(System.out::println);
+
+        System.out.println("Filters used are: ");
+        System.out.println(maf.getName());
+    }
+
+    public static void testMatchAllFilter2()
+    {
+        //Copy from testMatchAllFilter method
+        //copy from quakeWithFilter method
+        EarthQuakeParser parser = new EarthQuakeParser();
+        String source = "data/nov20quakedatasmall.atom";
+        ArrayList<QuakeEntry> list = parser.read(source);
+        System.out.println("read data for " + list.size() + " quakes");
+
+        MatchAllFilter maf = new MatchAllFilter();
+        //End
+
+        maf.addFilter(new MagnitudeFilter(0,3));
+
+        Location tulsa = new Location(36.1314, -95.9372);
+        maf.addFilter(new DistanceFilter(tulsa,10_000_000));
+
+        maf.addFilter(new PhraseFilter("Ca","any"));
+
+        filter(list,maf).parallelStream().forEach(System.out::println);
     }
 
 }
