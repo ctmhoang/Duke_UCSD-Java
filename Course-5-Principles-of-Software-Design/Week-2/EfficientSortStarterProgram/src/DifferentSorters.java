@@ -13,7 +13,8 @@ public class DifferentSorters
 
     public static void main(String[] args)
     {
-        sortWithCompareTo();
+//        sortWithCompareTo();
+        sortByLastWordInTitleThenByMagnitude();
     }
 
     public static void sortWithCompareTo()
@@ -60,6 +61,20 @@ public class DifferentSorters
         {
             System.out.println(qe);
         }
+    }
 
+    public static void sortByLastWordInTitleThenByMagnitude()
+    {
+        EarthQuakeParser parser = new EarthQuakeParser();
+        ArrayList<QuakeEntry> quakeData = parser.read("data/nov20quakedata.atom");
+        Collections.sort(quakeData, new TitleLastAndMagnitudeComparator());
+        for (QuakeEntry qe : quakeData)
+        {
+            System.out.println(qe);
+        }
+
+        int quakeNumber = 10;
+        System.out.println("Print quake entry in position " + quakeNumber);
+        System.out.println(quakeData.get(quakeNumber));
     }
 }
