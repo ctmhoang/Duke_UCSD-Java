@@ -3,12 +3,12 @@ import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class MarkovOne
+public class MarkovFour
 {
     private String myText;
     private Random myRandom;
 
-    public MarkovOne()
+    public MarkovFour()
     {
         myRandom = new Random();
     }
@@ -26,13 +26,13 @@ public class MarkovOne
     public String getRandomText(int numChars)
     {
         if (myText == null) return "";
-        int idx = myRandom.nextInt(myText.length() - 1);
-        String key = myText.substring(idx, idx + 1);
+        int idx = myRandom.nextInt(myText.length() - 4);
+        String key = myText.substring(idx, idx + 4);
         StringBuilder sb = new StringBuilder(key);
         for (int k = 0; k < numChars; k++)
         {
             ArrayList<String> follows = getFollows(key);
-            if (follows.size() == 0) break;
+            if(follows.size() == 0) break;
             String followChar = follows.get(myRandom.nextInt(follows.size()));
             key = key.substring(1) + followChar;
             sb.append(followChar);
@@ -44,7 +44,7 @@ public class MarkovOne
     public ArrayList<String> getFollows(String key)
     {
         ArrayList<String> res = new ArrayList<>();
-        //reformat key with all quantifiers, character classes and any single character
+        //reformat key with all quantifiers, character classes and any single character TIHI
         key = key.replaceAll("\\.", "\\\\.").replaceAll("\\[","\\\\[").replaceAll("\\?", "\\\\?")
                 .replaceAll("\\*","\\\\*").replaceAll("\\(","\\\\(").replaceAll("\\)","\\\\)");
         Pattern pattern = Pattern.compile(key);

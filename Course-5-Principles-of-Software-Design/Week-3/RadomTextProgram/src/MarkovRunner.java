@@ -12,7 +12,9 @@ public class MarkovRunner {
 	public static void main(String[] args)
 	{
 //		runMarkovZero();
-		runMarkovOne();
+//		runMarkovOne();
+//		runMarkovFour();
+		runMarkovModel(8);
 	}
     public static void runMarkovZero() {
 		FileResource fr = new FileResource();
@@ -32,6 +34,30 @@ public class MarkovRunner {
 		MarkovOne markov = new MarkovOne();
 		markov.setTraining(st);
 		markov.setRandom(42);
+		for(int k=0; k < 3; k++){
+			String text = markov.getRandomText(500);
+			printOut(text);
+		}
+	}
+public static void runMarkovFour() {
+		FileResource fr = new FileResource();
+		String st = fr.asString();
+		st = st.replace('\n', ' ');
+		MarkovFour markov = new MarkovFour();
+		markov.setTraining(st);
+		markov.setRandom(25);
+		for(int k=0; k < 3; k++){
+			String text = markov.getRandomText(500);
+			printOut(text);
+		}
+	}
+	public static void runMarkovModel(int n) {
+		FileResource fr = new FileResource();
+		String st = fr.asString();
+		st = st.replace('\n', ' ');
+		MarkovModel markov = new MarkovModel(n);
+		markov.setTraining(st);
+		markov.setRandom(365);
 		for(int k=0; k < 3; k++){
 			String text = markov.getRandomText(500);
 			printOut(text);

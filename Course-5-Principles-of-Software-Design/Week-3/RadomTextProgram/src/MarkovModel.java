@@ -3,14 +3,16 @@ import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class MarkovOne
+public class MarkovModel
 {
     private String myText;
     private Random myRandom;
+    private int model;
 
-    public MarkovOne()
+    public MarkovModel(int m)
     {
         myRandom = new Random();
+        model = m;
     }
 
     public void setRandom(int seed)
@@ -26,13 +28,13 @@ public class MarkovOne
     public String getRandomText(int numChars)
     {
         if (myText == null) return "";
-        int idx = myRandom.nextInt(myText.length() - 1);
-        String key = myText.substring(idx, idx + 1);
+        int idx = myRandom.nextInt(myText.length() - model);
+        String key = myText.substring(idx, idx + model);
         StringBuilder sb = new StringBuilder(key);
         for (int k = 0; k < numChars; k++)
         {
             ArrayList<String> follows = getFollows(key);
-            if (follows.size() == 0) break;
+            if(follows.size() == 0) break;
             String followChar = follows.get(myRandom.nextInt(follows.size()));
             key = key.substring(1) + followChar;
             sb.append(followChar);
