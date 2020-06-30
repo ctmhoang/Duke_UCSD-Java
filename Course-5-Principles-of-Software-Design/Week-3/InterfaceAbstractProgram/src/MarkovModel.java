@@ -3,10 +3,8 @@ import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class MarkovModel implements IMarkovModel
+public class MarkovModel extends AbstractMarkovModel
 {
-    private String myText;
-    private Random myRandom;
     private int model;
 
     public MarkovModel(int m)
@@ -15,15 +13,6 @@ public class MarkovModel implements IMarkovModel
         model = m;
     }
 
-    public void setRandom(int seed)
-    {
-        myRandom = new Random(seed);
-    }
-
-    public void setTraining(String s)
-    {
-        myText = s.trim();
-    }
 
     public String getRandomText(int numChars)
     {
@@ -43,20 +32,9 @@ public class MarkovModel implements IMarkovModel
         return sb.toString();
     }
 
-    public ArrayList<String> getFollows(String key)
+    @Override
+    public String toString()
     {
-        ArrayList<String> res = new ArrayList<>();
-        //reformat key with all quantifiers, character classes and any single character
-        key = key.replaceAll("\\.", "\\\\.").replaceAll("\\[","\\\\[").replaceAll("\\?", "\\\\?")
-                .replaceAll("\\*","\\\\*").replaceAll("\\(","\\\\(").replaceAll("\\)","\\\\)");
-        Pattern pattern = Pattern.compile(key);
-        Matcher m = pattern.matcher(myText);
-        while (m.find())
-        {
-            int followIdx = m.end();
-            if (followIdx > myText.length() - 1) return res;
-            res.add(myText.substring(followIdx, followIdx + 1));
-        }
-        return res;
+        return "MarkovModel of order " + model;
     }
 }

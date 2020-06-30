@@ -8,22 +8,12 @@
 
 import java.util.Random;
 
-public class MarkovZero implements IMarkovModel {
-    private String myText;
-	private Random myRandom;
+public class MarkovZero extends AbstractMarkovModel{
 	
 	public MarkovZero() {
 		myRandom = new Random();
 	}
-	
-	public void setRandom(int seed){
-		myRandom = new Random(seed);
-	}
-	
-	public void setTraining(String s){
-		myText = s.trim();
-	}
-	
+
 	public String getRandomText(int numChars){
 		if (myText == null){
 			return "";
@@ -35,5 +25,11 @@ public class MarkovZero implements IMarkovModel {
 		}
 		
 		return sb.toString();
+	}
+
+	@Override
+	public String toString()
+	{
+		return "MarkovModel of order 0";
 	}
 }
