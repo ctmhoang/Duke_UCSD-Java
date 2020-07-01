@@ -51,11 +51,13 @@ public class MarkovModel
                 .replaceAll("\\*","\\\\*").replaceAll("\\(","\\\\(").replaceAll("\\)","\\\\)");
         Pattern pattern = Pattern.compile(key);
         Matcher m = pattern.matcher(myText);
-        while (m.find())
+        int i = 0;
+        while (m.find(i))
         {
             int followIdx = m.end();
             if (followIdx > myText.length() - 1) return res;
             res.add(myText.substring(followIdx, followIdx + 1));
+            i = m.start()+1;
         }
         return res;
     }
