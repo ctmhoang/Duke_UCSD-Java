@@ -21,13 +21,25 @@ public class EfficientMarkovModel extends AbstractMarkovModel
 
     private void buildMap()
     {
-        for(int i = 0, k = myText.length() - model; i <= k ; i ++)
+    //Travel through text is more Efficient to call super method 0(n) vs 0(n**2)
+    // Faster than regex getFollows 65 times
+    // Faster than travel geFollows 6 times 
+    // Oop~
+        for (int i = 0, k = myText.length() - model; i <= k; i++)
         {
             String key = myText.substring(i, i + model);
-            if(follows.containsKey(key)) continue;
-            follows.put(key,super.getFollows(key));
+
+            if (i + model == myText.length())
+            {
+                follows.putIfAbsent(key, new ArrayList<>());
+                continue;
+            }
+            if(follows.containsKey(key)) follows.get(key).add(myText.substring(i + model, i + model + 1));
+            else follows.put(key,new ArrayList<>(Arrays.asList(myText.substring(i + model, i + model + 1))));
+
         }
-//        printHashMapInfo();
+        printHashMapInfo();
+    }
     }
 
     @Override
