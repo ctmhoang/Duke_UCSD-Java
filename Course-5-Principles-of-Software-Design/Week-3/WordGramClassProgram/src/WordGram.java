@@ -11,6 +11,7 @@ public class WordGram
     {
         myWords = new String[size];
         System.arraycopy(source, start, myWords, 0, size);
+        myHash = toString().hashCode();
     }
 
     public String wordAt(int index)
@@ -40,6 +41,7 @@ public class WordGram
     @Override
     public boolean equals(Object o)
     {
+        if (!(o instanceof WordGram)) return false;
         WordGram other = (WordGram) o;
         // DONE: Complete this method
         if (myWords.length != other.length()) return false;
@@ -56,6 +58,11 @@ public class WordGram
         System.arraycopy(myWords, 1, newWords, 0, myWords.length - 1);
         newWords[newWords.length - 1] = word;
         return new WordGram(newWords, 0, newWords.length);
+    }
+
+    public int hashCode()
+    {
+        return myHash;
     }
 
 }

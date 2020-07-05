@@ -12,7 +12,9 @@ public class MarkovRunner
 {
     public static void main(String[] args)
     {
-        runMarkov();
+//        runMarkov();
+//        testHashMap();
+        compareMethods();
     }
     public static void runModel(IMarkovModel markov, String text, int size)
     {
@@ -69,4 +71,40 @@ public class MarkovRunner
         System.out.println("\n----------------------------------");
     }
 
+    public static void testHashMap()
+    {
+        EfficientMarkovWord markovWord = new EfficientMarkovWord(2);
+        markovWord.setRandom(42);
+        markovWord.setTraining("this is a test yes this is really a test");
+        System.out.println(markovWord.getRandomText(50));
+
+        markovWord.setTraining("this is a test yes this is really a test yes a test this is wow");
+    }
+
+    public static void compareMethods()
+    {
+        FileResource fr = new FileResource();
+        String st = fr.asString();
+        st = st.replace('\n', ' ');
+        int size = 100;
+        int seed = 42;
+
+        IMarkovModel tmp;
+        long str = System.nanoTime();
+        tmp = new EfficientMarkovWord(2);
+        runModel(tmp, st, size, seed);
+        long end = System.nanoTime();
+
+        long eff =  end - str;
+
+        str = System.nanoTime();
+        tmp = new MarkovWord(2);
+        runModel(tmp, st, size, seed);
+        end = System.nanoTime();
+
+        long stock = end-str;
+
+        System.out.println("faster than: " + stock/eff);
+
+    }
 }
