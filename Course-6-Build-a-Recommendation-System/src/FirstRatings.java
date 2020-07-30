@@ -1,10 +1,9 @@
 import edu.duke.FileResource;
-import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 
-import java.awt.*;
 import java.util.*;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
@@ -13,7 +12,7 @@ public class FirstRatings
     public static void main(String[] args)
     {
 //        testLoadMovies();
-        testLoadRaters();
+//        testLoadRaters();
     }
 
     public static ArrayList<Movie> loadMovies(String filename)
@@ -63,7 +62,7 @@ public class FirstRatings
             }
 
             String movieID = data.get("movie_id");
-            if(tmp.getRating(movieID) == -1)
+            if (tmp.getRating(movieID) == -1)
                 tmp.addRating(movieID, Double.parseDouble(data.get("rating")));
 
 
@@ -76,11 +75,13 @@ public class FirstRatings
         ArrayList<Movie> tmp = loadMovies("data/ratedmovies_short.csv");
         System.out.println("The number of the movies in data is " + tmp.size());
 //        tmp.forEach(System.out::println);
-        System.out.println("Include Genre Type: " + includeGenreType("Comedy", tmp));
-        System.out.println("Has length greater than: " + hasLengthGreaterThan(150, tmp));
-        int num;
-        System.out.println("Maximum number of movies by any director is " + (num = getMaximumNumberOfDirectorsInAMovie(tmp)));
-        System.out.println("Has number of author: " + getTheNumberOfDirectorsOfMoviesHasTheSameNumberOfDirecter(num, tmp));
+        String type = "Comedy";
+        int len = 150;
+        System.out.println("Include Genre " + type + ": " + includeGenreType(type, tmp));
+        System.out.println("Has length greater " + len + " than: " + hasLengthGreaterThan(len, tmp));
+
+        Map.Entry<String, Long> maxDirector = getMaximumMoviesDirectedByAnyDirector(tmp);
+        System.out.println("Maximum number of movies directed by " + maxDirector.getValue() + " director is " + maxDirector.getKey());
     }
 
     public static int includeGenreType(String genre, ArrayList<Movie> movies)
@@ -96,30 +97,27 @@ public class FirstRatings
         return (int) movies.stream().filter(m -> m.getMinutes() > length).count();
     }
 
-    public static int getMaximumNumberOfDirectorsInAMovie(ArrayList<Movie> movies)
+    public static Map.Entry<String,Long> getMaximumMoviesDirectedByAnyDirector(ArrayList<Movie> movies)
     {
-        return movies.stream().map(m -> m.getDirector().split(",")).max(Comparator.comparingInt(a -> a.length)).get().length;
+        Map<String, Long> directors = movies.stream().flatMap(movie -> Arrays.stream(movie.getDirector().split("\\s*,\\s*"))).collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+        return Collections.max(directors.entrySet(), Map.Entry.comparingByValue());
     }
 
-    public static int getTheNumberOfDirectorsOfMoviesHasTheSameNumberOfDirecter(int num, ArrayList<Movie> movies)
-    {
-        Set<String> director = movies.stream().parallel().map(m -> m.getDirector().split(",")).filter(d -> d.length == num).flatMap(Arrays::stream).collect(Collectors.toSet());
-        return director.size();
-    }
 
-    public static void testLoadRaters(){
+    public static void testLoadRaters()
+    {
         ArrayList<Rater> tmp = loadRaters("data/ratings_short.csv");
         System.out.println("The total number of raters in file is " + tmp.size());
-        tmp.stream().map(FirstRatings::printRater).forEach(System.out::println);
+//        tmp.stream().map(FirstRatings::printRater).forEach(System.out::println);
 
         int id = 2;
-        Rater r = tmp.get(id-1);
+        Rater r = tmp.get(id - 1);
         System.out.println("Rater whose id is " + id + " has rated " + getNumberOfRating(r) + " movies");
 
         int max = getMaxNumberOfRatingsIn(tmp);
         System.out.println("Maximum number of ratings is " + max);
-        ArrayList<String> maxRater = getRaterWithRating(max,tmp);
-        System.out.println("Raters 's ids have maximum number of ratings are " );
+        ArrayList<String> maxRater = getRaterWithRating(max, tmp);
+        System.out.println("Raters 's ids have maximum number of ratings are ");
         System.out.println(maxRater);
         System.out.println("has size: " + maxRater.size());
         System.out.println();
@@ -130,7 +128,8 @@ public class FirstRatings
         System.out.println("All movies have been rated are " + getQuantityOfMoviesRated(tmp));
     }
 
-    private static String printRater(Rater r){
+    private static String printRater(Rater r)
+    {
         StringBuilder s = new StringBuilder();
         ArrayList<String> moviesRated = r.getItemsRated();
         s.append(r.getID()).append(" ").append(moviesRated.size()).append("\n");
@@ -138,7 +137,8 @@ public class FirstRatings
         return s.toString();
     }
 
-    public static int getNumberOfRating(Rater r){
+    public static int getNumberOfRating(Rater r)
+    {
         return r.getItemsRated().size();
     }
 
@@ -147,15 +147,18 @@ public class FirstRatings
         return raters.stream().mapToInt(r -> r.getItemsRated().size()).max().getAsInt();
     }
 
-    public static ArrayList<String> getRaterWithRating(int num, ArrayList<Rater> raters){
-        return raters.stream().filter(r -> r.getItemsRated().size()  == num).map(Rater::getID).collect(Collectors.toCollection(ArrayList::new));
+    public static ArrayList<String> getRaterWithRating(int num, ArrayList<Rater> raters)
+    {
+        return raters.stream().filter(r -> r.getItemsRated().size() == num).map(Rater::getID).collect(Collectors.toCollection(ArrayList::new));
     }
 
-    public static int getNumberOfRatersForAMovie(String id, ArrayList<Rater> raters){
+    public static int getNumberOfRatersForAMovie(String id, ArrayList<Rater> raters)
+    {
         return (int) raters.stream().filter(r -> r.getRating(id) != -1).count();
     }
 
-    public static int getQuantityOfMoviesRated(ArrayList<Rater> raters){
+    public static int getQuantityOfMoviesRated(ArrayList<Rater> raters)
+    {
         return (int) raters.stream().flatMap(r -> r.getItemsRated().stream()).distinct().count();
     }
 
