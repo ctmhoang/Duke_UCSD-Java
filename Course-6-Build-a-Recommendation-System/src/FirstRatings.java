@@ -58,7 +58,7 @@ public class FirstRatings
                 tmp = res.get(Integer.parseInt(id) - 1); // id start at 1 using base 0
             } catch (IndexOutOfBoundsException e)
             {
-                tmp = new Rater(id);
+                tmp = new EfficientRater(id);
                 res.add(tmp);
             }
 

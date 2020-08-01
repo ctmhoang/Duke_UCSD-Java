@@ -5,8 +5,8 @@ public class MovieRunnerAverage
 {
     public static void main(String[] args)
     {
-//        printAverageRatings();
-//        getAverageRatingOneMovie();
+        printAverageRatings();
+        getAverageRatingOneMovie();
     }
 
     public static void printAverageRatings()
