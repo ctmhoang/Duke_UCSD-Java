@@ -1,5 +1,4 @@
-import week_1.Rating;
-import week_3.Rater;
+package week_1;
 
 import java.util.ArrayList;
 
@@ -11,12 +10,12 @@ import java.util.ArrayList;
  */
 
 
-public class PlainRater implements Rater
+public class Rater
 {
     private final String myID;
     private final ArrayList<Rating> myRatings;
 
-    public PlainRater(String id) {
+    public Rater(String id) {
         myID = id;
         myRatings = new ArrayList<Rating>();
     }

@@ -1,5 +1,6 @@
+package week_3;
+
 import week_1.Rating;
-import week_3.Rater;
 
 import java.util.ArrayList;
 
