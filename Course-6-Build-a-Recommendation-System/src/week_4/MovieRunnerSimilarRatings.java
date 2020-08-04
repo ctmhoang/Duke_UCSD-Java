@@ -12,24 +12,25 @@ public class MovieRunnerSimilarRatings
 
     public static void main(String[] args)
     {
-        printAverageRatings();
-        printAverageRatingsByYearAfterAndGenre();
+//        printAverageRatings();
+//        printAverageRatingsByYearAfterAndGenre();
+        printSimilarRatings();
     }
 
-    private static FourthRatings common()
+    private static FourthRatings init()
     {
         FourthRatings ratings = new FourthRatings();
-        RaterDatabase.initialize("ratings_short.csv");
+        RaterDatabase.initialize("ratings.csv");
         System.out.println("Number of raters is " + RaterDatabase.size());
 
-        MovieDatabase.initialize("ratedmovies_short.csv");
+        MovieDatabase.initialize("ratedmoviesfull.csv");
         System.out.println("Number of movies is " + MovieDatabase.size());
         return ratings;
     }
 
     public static void printAverageRatings()
     {
-        FourthRatings ratings = common();
+        FourthRatings ratings = init();
 
         ArrayList<Rating> tmp = ratings.getAverageRatings(1);
         System.out.println("Found: " + tmp.size());
@@ -39,7 +40,7 @@ public class MovieRunnerSimilarRatings
 
     public static void printAverageRatingsByYearAfterAndGenre()
     {
-        FourthRatings ratings = common();
+        FourthRatings ratings = init();
 
         AllFilters al = new AllFilters();
         al.addFilter(new YearAfterFilter(1980));
@@ -48,5 +49,12 @@ public class MovieRunnerSimilarRatings
         System.out.println("Found: " + tmp.size());
         tmp.sort(Comparator.comparingDouble(Rating::getValue));
         tmp.stream().map(r -> r.getValue() + " " + MovieDatabase.getTitle(r.getItem()) + "\n\t" + MovieDatabase.getYear(r.getItem()) + "\t" + MovieDatabase.getGenres(r.getItem())).forEach(System.out::println);
+    }
+
+    public static void printSimilarRatings(){
+        FourthRatings ratings = init();
+
+        ratings.getSimilarRatings("65",20,5).forEach(m -> System.out.println(MovieDatabase.getTitle(m.getItem()) + "\t" + m.getValue()));
+
     }
 }

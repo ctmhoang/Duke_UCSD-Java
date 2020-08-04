@@ -3,11 +3,10 @@ package week_4;
 import week_1.Rating;
 import week_3.*;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.DoubleSummaryStatistics;
-import java.util.List;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class FourthRatings
 {
@@ -42,6 +41,37 @@ public class FourthRatings
         Rater me = RaterDatabase.getRater(id);
         List<Rater> tmp = RaterDatabase.getRaters();
         tmp.remove(me);
-        return tmp.parallelStream().map(rater -> new Rating(rater.getID(), dotProduct(me, rater))).filter(rating -> rating.getValue() < 0).sorted(Collections.reverseOrder()).collect(Collectors.toCollection(ArrayList::new));
+        return tmp.parallelStream().map(rater -> new Rating(rater.getID(), dotProduct(me, rater))).filter(rating -> rating.getValue() > 0).sorted(Collections.reverseOrder()).collect(Collectors.toCollection(ArrayList::new));
     }
+
+    public ArrayList<Rating> getSimilarRatings(String id, int numSimilarRaters, int minimalRaters)
+    {
+        Map<String, DoubleSummaryStatistics> stats =  getSimilarCommon(id, numSimilarRaters);
+        ArrayList<Rating> res =  stats.entrySet().parallelStream().filter(entry -> entry.getValue().getCount() >= minimalRaters).map(entry -> new Rating(entry.getKey(),entry.getValue().getAverage())).collect(Collectors.toCollection(ArrayList::new));
+        res.sort(Collections.reverseOrder());
+        return res;
+    }
+
+    public ArrayList<Rating> getSimilarRatingsByFilter(String id, int numSimilarRaters, int minimalRaters, Filter filterCriteria)
+    {
+        Map<String, DoubleSummaryStatistics> stats = getSimilarCommon(id,numSimilarRaters);
+        ArrayList<Rating> res =  stats.entrySet().parallelStream().filter(entry -> entry.getValue().getCount() >= minimalRaters && filterCriteria.satisfies(entry.getKey())).map(entry -> new Rating(entry.getKey(),entry.getValue().getAverage())).collect(Collectors.toCollection(ArrayList::new));
+        res.sort(Collections.reverseOrder());
+        return res;
+    }
+
+    private Map<String, DoubleSummaryStatistics> getSimilarCommon(String id, int numSimilarRaters)
+    {
+        List<Rating> similarRater = getSimilarities(id);
+        if (similarRater.size() > numSimilarRaters) similarRater = similarRater.subList(0, numSimilarRaters);
+
+        return similarRater.parallelStream().flatMap(rating ->
+                {
+                    Rater usr = RaterDatabase.getRater(rating.getItem());
+                    return usr.getItemsRated().parallelStream().map(movieId -> new Rating(movieId, usr.getRating(movieId) * rating.getValue()));
+                }
+        ).collect(Collectors.groupingByConcurrent(Rating::getItem, Collectors.summarizingDouble(Rating::getValue)));
+    }
+
+
 }
