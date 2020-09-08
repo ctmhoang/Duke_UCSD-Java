@@ -8,12 +8,13 @@ public class DirectorsFilter implements Filter
 
     public DirectorsFilter(String directors)
     {
-        this.director = directors.split("//s*,//s*");
+        this.director = directors.split("\\s*,\\s*");
     }
 
     @Override
     public boolean satisfies(String id)
     {
-        return Arrays.stream(director).anyMatch(d -> d.contains(MovieDatabase.getDirector(id)));
+        String movieDir = MovieDatabase.getDirector(id);
+        return Arrays.stream(director).anyMatch(movieDir::contains);
     }
 }
