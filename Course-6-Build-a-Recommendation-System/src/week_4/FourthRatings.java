@@ -47,16 +47,14 @@ public class FourthRatings
     public ArrayList<Rating> getSimilarRatings(String id, int numSimilarRaters, int minimalRaters)
     {
         Map<String, DoubleSummaryStatistics> stats =  getSimilarCommon(id, numSimilarRaters);
-        ArrayList<Rating> res =  stats.entrySet().parallelStream().filter(entry -> entry.getValue().getCount() >= minimalRaters).map(entry -> new Rating(entry.getKey(),entry.getValue().getAverage())).collect(Collectors.toCollection(ArrayList::new));
-        res.sort(Collections.reverseOrder());
+        ArrayList<Rating> res = stats.entrySet().parallelStream().filter(entry -> entry.getValue().getCount() >= minimalRaters).map(entry -> new Rating(entry.getKey(), entry.getValue().getAverage())).sorted(Collections.reverseOrder()).collect(Collectors.toCollection(ArrayList::new));
         return res;
     }
 
     public ArrayList<Rating> getSimilarRatingsByFilter(String id, int numSimilarRaters, int minimalRaters, Filter filterCriteria)
     {
         Map<String, DoubleSummaryStatistics> stats = getSimilarCommon(id,numSimilarRaters);
-        ArrayList<Rating> res =  stats.entrySet().parallelStream().filter(entry -> entry.getValue().getCount() >= minimalRaters && filterCriteria.satisfies(entry.getKey())).map(entry -> new Rating(entry.getKey(),entry.getValue().getAverage())).collect(Collectors.toCollection(ArrayList::new));
-        res.sort(Collections.reverseOrder());
+        ArrayList<Rating> res = stats.entrySet().parallelStream().filter(entry -> entry.getValue().getCount() >= minimalRaters && filterCriteria.satisfies(entry.getKey())).map(entry -> new Rating(entry.getKey(), entry.getValue().getAverage())).sorted(Collections.reverseOrder()).collect(Collectors.toCollection(ArrayList::new));
         return res;
     }
 
