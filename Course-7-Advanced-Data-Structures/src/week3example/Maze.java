@@ -175,7 +175,7 @@ public class Maze {
 		}
 
 		HashMap<MazeNode, MazeNode> parentMap = new HashMap<MazeNode, MazeNode>();
-		
+
 		HashSet<MazeNode> visited = new HashSet<MazeNode>();
 		Stack<MazeNode> toExplore = new Stack<MazeNode>();
 		toExplore.push(start);
@@ -199,7 +199,7 @@ public class Maze {
 				}
 			}
 		}
-		
+
 		if (!found) {
 			System.out.println("No path exists");
 			return new LinkedList<MazeNode>();
@@ -215,8 +215,8 @@ public class Maze {
 		path.addFirst(start);
 		return path;
 	}
-	
-	
+
+
 	/** breadth first search from (startRow,startCol) to (endRow,endCol)
 	 * 
 	 * Note: This method could also stand to be refactored.
