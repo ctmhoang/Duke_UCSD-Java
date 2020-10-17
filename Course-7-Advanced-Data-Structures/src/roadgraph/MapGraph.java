@@ -5,8 +5,10 @@
  */
 package roadgraph;
 
+import java.awt.geom.Point2D;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import geography.GeographicPoint;
@@ -234,12 +236,70 @@ public class MapGraph {
    */
   public List<GeographicPoint> dijkstra(
       GeographicPoint start, GeographicPoint goal, Consumer<GeographicPoint> nodeSearched) {
-    // TODO: Implement this method in WEEK 4
+    // DONE: Implement this method in WEEK 4
+    if (start == null || goal == null) {
+      return null;
+    }
 
-    // Hook for visualization.  See writeup.
-    // nodeSearched.accept(next.getLocation());
+    Map<GeographicPoint, GeographicPoint> parentMap = new HashMap<>();
 
+    boolean found = dijkstraHelper(start, goal, nodeSearched, parentMap);
+    if (found) return reconstructPath(start, goal, parentMap);
     return null;
+  }
+
+  private boolean dijkstraHelper(
+      GeographicPoint start,
+      GeographicPoint goal,
+      Consumer<GeographicPoint> nodeSearched,
+      Map<GeographicPoint, GeographicPoint> parentMap) {
+    Map<GeographicPoint, Double> distance = new HashMap<>();
+    Set<GeographicPoint> discovered = new HashSet<>();
+    PriorityQueue<GeographicPoint> pointQueue =
+        new PriorityQueue<>(Comparator.comparingDouble(distance::get));
+
+    distance.put(start, (double) 0);
+    pointQueue.add(start);
+    while (!pointQueue.isEmpty()) {
+      GeographicPoint currPoint = pointQueue.poll();
+      if (!discovered.contains(currPoint)) {
+        discovered.add(currPoint);
+
+        // Hook for visualization.  See writeup.
+        nodeSearched.accept(currPoint);
+
+        if (goal.equals(currPoint)) {
+          return true;
+        }
+
+        double currDist = distance.get(currPoint);
+
+        List<GeographicPoint> adjacentPoints =
+            vertices.get(currPoint).getNeighbors().stream()
+                .map(Edge::getAdjVertex)
+                .collect(Collectors.toList());
+        adjacentPoints.stream()
+            .filter(vertex -> !parentMap.containsKey(vertex))
+            .forEach(child -> parentMap.put(child, currPoint));
+        adjacentPoints.forEach(
+            point ->
+                distance.merge(
+                    point,
+                    currDist + point.distance(currPoint),
+                    (old, newOne) -> {
+                      if (old > newOne) {
+                        System.out.println(parentMap);
+                        parentMap.replace(point, currPoint);
+                        return newOne;
+                      }
+                      return old;
+                    }));
+
+        pointQueue.removeAll(adjacentPoints);
+        pointQueue.addAll(adjacentPoints);
+      }
+    }
+    return false;
   }
 
   /**
@@ -286,7 +346,8 @@ public class MapGraph {
     GeographicPoint testEnd = new GeographicPoint(8.0, -1.0);
     //    System.out.println(firstMap.numOfEdges);
     //    System.out.println(firstMap.vertices.size());
-    System.out.println(firstMap.bfs(testStart, testEnd));
+    //    System.out.println(firstMap.bfs(testStart, testEnd));
+    System.out.println((firstMap.dijkstra(testStart, testEnd)));
 
     // You can use this method for testing.
 
