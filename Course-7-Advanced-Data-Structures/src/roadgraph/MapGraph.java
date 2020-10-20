@@ -5,15 +5,13 @@
  */
 package roadgraph;
 
-import java.awt.geom.Point2D;
-import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
 import geography.GeographicPoint;
 import util.GraphLoader;
+
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * @author UCSD MOOC development team and YOU
@@ -25,11 +23,15 @@ public class MapGraph {
   private final Map<GeographicPoint, VertexInfos> vertices;
   private int numOfEdges;
 
+  private Set<List<GeographicPoint>> commonPath;
+
   /** Create a new empty MapGraph */
   public MapGraph() {
     // Done: Implement in this constructor in WEEK 3
     vertices = new HashMap<>();
     numOfEdges = 0;
+
+    commonPath = new HashSet<>();
   }
 
   /**
@@ -389,27 +391,81 @@ public class MapGraph {
     return false;
   }
 
+  public List<GeographicPoint> findPath(GeographicPoint start, GeographicPoint goal) {
+    final double MIN_DISTANCE = goal.distance(start);
+    List<List<GeographicPoint>> capPath =
+        commonPath.stream()
+            .filter(
+                path -> path.stream().noneMatch(vertex -> start.distance(vertex) > MIN_DISTANCE))
+            .collect(Collectors.toList());
+    if (capPath.size() > 0) {
+      System.out.println("OLD PATH");
+      List<GeographicPoint> bestPathFoundSoFar =
+          Collections.min(
+              capPath,
+              Comparator.comparingDouble(
+                  path ->
+                      path.stream()
+                          .mapToDouble(start::distance)
+                          .boxed()
+                          .min(Double::compareTo)
+                          .orElseThrow(RuntimeException::new)));
+      GeographicPoint closestNode =
+          Collections.min(bestPathFoundSoFar, Comparator.comparingDouble(start::distance));
+
+      commonPath.remove(bestPathFoundSoFar);
+
+      bestPathFoundSoFar =
+          bestPathFoundSoFar.subList(
+              bestPathFoundSoFar.indexOf(closestNode), bestPathFoundSoFar.size());
+
+
+
+      commonPath.add(bestPathFoundSoFar);
+      if (start.equals(closestNode)) {
+        return bestPathFoundSoFar;
+      }
+      List<GeographicPoint> res = aStarSearch(start, closestNode);
+      res.subList(0, res.size() - 1).addAll(bestPathFoundSoFar);
+      return res;
+    }
+    System.out.println("NEW PATH");
+    List<GeographicPoint> res = aStarSearch(start, goal);
+    commonPath.add(res);
+    return res;
+  }
+
   public static void main(String[] args) {
-    MapGraph theMap = new MapGraph();
-    System.out.print("DONE. \nLoading the map...");
-    GraphLoader.loadRoadMap("data/maps/utc.map", theMap);
-    System.out.println("DONE.");
-
-    GeographicPoint start = new GeographicPoint(32.8648772, -117.2254046);
-    GeographicPoint end = new GeographicPoint(32.8660691, -117.217393);
-
-    List<GeographicPoint> route = theMap.dijkstra(start,end, System.out::println);
-    System.out.println();
-    List<GeographicPoint> route2 = theMap.aStarSearch(start,end, System.out::println);
-
-    //    System.out.print("Making a new map...");
-    //    MapGraph firstMap = new MapGraph();
+    //    MapGraph theMap = new MapGraph();
     //    System.out.print("DONE. \nLoading the map...");
-    //    GraphLoader.loadRoadMap("data/testdata/simpletest.map", firstMap);
+    //    GraphLoader.loadRoadMap("data/maps/utc.map", theMap);
     //    System.out.println("DONE.");
     //
-    //    GeographicPoint testStart = new GeographicPoint(1.0, 1.0);
-    //    GeographicPoint testEnd = new GeographicPoint(8.0, -1.0);
+    //    GeographicPoint start = new GeographicPoint(32.8648772, -117.2254046);
+    //    GeographicPoint end = new GeographicPoint(32.8660691, -117.217393);
+    //
+    //    List<GeographicPoint> route = theMap.dijkstra(start, end, System.out::println);
+    //    System.out.println();
+    //    List<GeographicPoint> route2 = theMap.aStarSearch(start, end, System.out::println);
+
+    System.out.print("Making a new map...");
+    MapGraph firstMap = new MapGraph();
+    System.out.print("DONE. \nLoading the map...");
+    GraphLoader.loadRoadMap("data/testdata/simpletest.map", firstMap);
+    System.out.println("DONE.");
+
+    GeographicPoint testStart = new GeographicPoint(1.0, 1.0);
+    GeographicPoint testEnd = new GeographicPoint(8.0, -1.0);
+    System.out.println(firstMap.findPath(testStart, testEnd));
+    GeographicPoint str1 = new GeographicPoint(4.0, 1.0);
+    System.out.println(firstMap.findPath(str1, testEnd));
+    GeographicPoint str2 = new GeographicPoint(7.0, 3.0);
+    System.out.println(testEnd.distance(str2));
+    System.out.println(str2.distance(str1));
+    System.out.println(firstMap.findPath(str2, testEnd));
+    System.out.println(firstMap.findPath(str2, testEnd));
+    System.out.println(firstMap.commonPath);
+
     //    System.out.println(firstMap.numOfEdges);
     //    System.out.println(firstMap.vertices.size());
     //    System.out.println(firstMap.bfs(testStart, testEnd));
