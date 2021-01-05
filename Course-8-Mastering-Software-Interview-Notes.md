@@ -78,3 +78,14 @@
   * Education
   * Prev exp
 * Recent accomplistment fits the applied position (tie)
+
+# Week-2
+## TPS
+### Tips
+* Clarify problem
+* Talk out loud about your talk process
+* Listen to hints (Any errors)
+* Follow-through and analysis
+### Growth mindset prevent
+* Imposter Syndrome
+* Stereotype threats
