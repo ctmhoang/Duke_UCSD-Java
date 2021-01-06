@@ -89,3 +89,18 @@
 ### Growth mindset prevent
 * Imposter Syndrome
 * Stereotype threats
+
+# Week-3
+## STAR METHOD
+* Situation | Task
+  * Mix Probs vs Sols
+  * Assume too much
+* Action | Result
+  * In the weeds
+  * Chronology
+
+## Answering Questions
+* Acknowledge the question asker
+* Understand the question
+* Tiein the question with your work
+* Make sure you answered the question
