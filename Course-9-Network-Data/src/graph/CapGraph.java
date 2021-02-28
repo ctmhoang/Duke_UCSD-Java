@@ -1,9 +1,12 @@
 /** */
 package graph;
 
+import util.GraphLoader;
+
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * @author Your name here.
@@ -44,11 +47,10 @@ public class CapGraph implements Graph {
     Graph res = new CapGraph();
     if (vertices.containsKey(center)) {
       Set<Integer> directedVertices = vertices.get(center);
-      directedVertices.parallelStream().forEach(res::addVertex);
 
       directedVertices.parallelStream()
           .collect(
-              Collectors.groupingBy(
+              Collectors.groupingByConcurrent(
                   Function.identity(),
                   Collectors.flatMapping(
                       v -> vertices.get(v).stream().filter(directedVertices::contains),
@@ -67,13 +69,42 @@ public class CapGraph implements Graph {
     if (vertices.isEmpty()) return null;
     Set<Integer> discovered = new HashSet<>();
 
+    Stack<Integer> res = new Stack<>();
     for (int ver : vertices.keySet()) {
-      if(discovered.contains(ver)) continue;
+      if (discovered.contains(ver)) continue;
       discovered.add(ver);
-      Stack<Integer> res = DFSHelper(ver, discovered, this);
+      res.addAll(DFSHelper(ver, discovered, this));
     }
-    
-    return null;
+
+    discovered.clear();
+    List<Stack<Integer>> SCCs = new LinkedList<>();
+
+    CapGraph transGraph = transpose();
+    while (!(res.isEmpty())) {
+      int tmp = res.pop();
+      if (discovered.contains(tmp)) continue;
+      discovered.add(tmp);
+      SCCs.add(DFSHelper(tmp, discovered, transGraph));
+    }
+
+    return getGraphList(SCCs);
+  }
+
+  private List<Graph> getGraphList(List<Stack<Integer>> SCCs) {
+    List<Graph> graps = new LinkedList<>();
+    for (Stack<Integer> data : SCCs) {
+      Graph e = new CapGraph();
+      data.parallelStream().forEach(e::addVertex);
+      data.parallelStream()
+          .collect(
+              Collectors.groupingByConcurrent(
+                  Function.identity(),
+                  Collectors.flatMapping(
+                      v -> vertices.get(v).stream().filter(data::contains), Collectors.toSet())))
+          .forEach((key, values) -> values.forEach(val -> e.addEdge(key, val)));
+      graps.add(e);
+    }
+    return graps;
   }
 
   private Stack<Integer> DFSHelper(int vertex, Set<Integer> discovered, CapGraph data) {
@@ -85,11 +116,12 @@ public class CapGraph implements Graph {
         res.addAll(DFSHelper(ver, discovered, data));
       }
     }
+    res.push(vertex);
     return res;
   }
 
-  private Graph transpose() {
-    Graph res = new CapGraph();
+  private CapGraph transpose() {
+    CapGraph res = new CapGraph();
     vertices.keySet().forEach(res::addVertex);
     vertices.forEach((key, values) -> values.forEach(val -> res.addEdge(val, key)));
     return res;
@@ -101,5 +133,11 @@ public class CapGraph implements Graph {
   @Override
   public HashMap<Integer, HashSet<Integer>> exportGraph() {
     return vertices;
+  }
+
+  public static void main(String[] args) {
+    Graph a = new CapGraph();
+    GraphLoader.loadGraph(a, "data/scc/test_" + 4 + ".txt");
+    a.getSCCs().stream().map(Graph::exportGraph).forEach(System.out::println);
   }
 }
