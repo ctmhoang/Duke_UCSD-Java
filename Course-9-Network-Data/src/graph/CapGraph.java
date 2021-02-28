@@ -2,6 +2,8 @@
 package graph;
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author Your name here.
@@ -10,7 +12,7 @@ import java.util.*;
  */
 public class CapGraph implements Graph {
 
-  public final Map<Integer, Set<Integer>> vertices;
+  private final HashMap<Integer, HashSet<Integer>> vertices;
 
   public CapGraph() {
     this.vertices = new HashMap<>();
@@ -21,7 +23,7 @@ public class CapGraph implements Graph {
    */
   @Override
   public void addVertex(int num) {
-    vertices.put(num, new HashSet<>());
+    vertices.putIfAbsent(num, new HashSet<>());
   }
 
   /* (non-Javadoc)
@@ -29,8 +31,8 @@ public class CapGraph implements Graph {
    */
   @Override
   public void addEdge(int from, int to) {
-    // TODO Auto-generated method stub
-    if (vertices.containsKey(from)) throw new IllegalArgumentException("Vertex do not exist");
+    addVertex(from);
+    addVertex(to);
     vertices.get(from).add(to);
   }
 
@@ -39,8 +41,21 @@ public class CapGraph implements Graph {
    */
   @Override
   public Graph getEgonet(int center) {
-    // TODO Auto-generated method stub
-    return null;
+    Graph res = new CapGraph();
+    if (vertices.containsKey(center)) {
+      Set<Integer> directedVertices = vertices.get(center);
+      directedVertices.parallelStream().forEach(res::addVertex);
+
+      directedVertices.parallelStream()
+          .collect(
+              Collectors.groupingBy(
+                  Function.identity(),
+                  Collectors.flatMapping(
+                      v -> vertices.get(v).stream().filter(directedVertices::contains),
+                      Collectors.toSet())))
+          .forEach((key, values) -> values.forEach(val -> res.addEdge(key, val)));
+    }
+    return res;
   }
 
   /* (non-Javadoc)
@@ -49,7 +64,35 @@ public class CapGraph implements Graph {
   @Override
   public List<Graph> getSCCs() {
     // TODO Auto-generated method stub
+    if (vertices.isEmpty()) return null;
+    Set<Integer> discovered = new HashSet<>();
+
+    for (int ver : vertices.keySet()) {
+      if(discovered.contains(ver)) continue;
+      discovered.add(ver);
+      Stack<Integer> res = DFSHelper(ver, discovered, this);
+    }
+    
     return null;
+  }
+
+  private Stack<Integer> DFSHelper(int vertex, Set<Integer> discovered, CapGraph data) {
+    Set<Integer> connected = data.exportGraph().get(vertex);
+    Stack<Integer> res = new Stack<>();
+    for (int ver : connected) {
+      if (!discovered.contains(ver)) {
+        discovered.add(ver);
+        res.addAll(DFSHelper(ver, discovered, data));
+      }
+    }
+    return res;
+  }
+
+  private Graph transpose() {
+    Graph res = new CapGraph();
+    vertices.keySet().forEach(res::addVertex);
+    vertices.forEach((key, values) -> values.forEach(val -> res.addEdge(val, key)));
+    return res;
   }
 
   /* (non-Javadoc)
@@ -57,7 +100,6 @@ public class CapGraph implements Graph {
    */
   @Override
   public HashMap<Integer, HashSet<Integer>> exportGraph() {
-    // TODO Auto-generated method stub
-    return null;
+    return vertices;
   }
 }
