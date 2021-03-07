@@ -6,7 +6,6 @@ import util.GraphLoader;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 /**
  * @author Your name here.
@@ -47,15 +46,7 @@ public class CapGraph implements Graph {
     Graph res = new CapGraph();
     if (vertices.containsKey(center)) {
       Set<Integer> directedVertices = vertices.get(center);
-
-      directedVertices.parallelStream()
-          .collect(
-              Collectors.groupingByConcurrent(
-                  Function.identity(),
-                  Collectors.flatMapping(
-                      v -> vertices.get(v).stream().filter(directedVertices::contains),
-                      Collectors.toSet())))
-          .forEach((key, values) -> values.forEach(val -> res.addEdge(key, val)));
+      populateGraph(directedVertices, res);
     }
     return res;
   }
@@ -94,17 +85,23 @@ public class CapGraph implements Graph {
     List<Graph> graps = new LinkedList<>();
     for (Stack<Integer> data : SCCs) {
       Graph e = new CapGraph();
-      data.parallelStream().forEach(e::addVertex);
-      data.parallelStream()
-          .collect(
-              Collectors.groupingByConcurrent(
-                  Function.identity(),
-                  Collectors.flatMapping(
-                      v -> vertices.get(v).stream().filter(data::contains), Collectors.toSet())))
-          .forEach((key, values) -> values.forEach(val -> e.addEdge(key, val)));
+      populateGraph(data, e);
       graps.add(e);
     }
     return graps;
+  }
+
+  private void populateGraph(Collection<Integer> data, Graph e) {
+    data.forEach(e::addVertex);
+
+    data.stream()
+        .collect(
+            Collectors.groupingByConcurrent(
+                Function.identity(),
+                Collectors.mapping(
+                    v -> vertices.get(v).stream().filter(data::contains), Collectors.toSet())))
+        .forEach(
+            (key, svalues) -> svalues.forEach(vals -> vals.forEach(val -> e.addEdge(key, val))));
   }
 
   private Stack<Integer> DFSHelper(int vertex, Set<Integer> discovered, CapGraph data) {
