@@ -5,14 +5,16 @@ import util.GraphLoader;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Your name here.
  *     <p>For the warm up assignment, you must implement your Graph in a class named CapGraph. Here
  *     is the stub file.
  */
-public class CapGraph implements Graph {
+public class CapGraph implements Graph, ISocialNetwork {
 
   private final HashMap<Integer, HashSet<Integer>> vertices;
 
@@ -130,6 +132,25 @@ public class CapGraph implements Graph {
   @Override
   public HashMap<Integer, HashSet<Integer>> exportGraph() {
     return vertices;
+  }
+
+  @Override
+  public Map<Integer, Set<Integer>> getPotentialFriends(int userId) {
+    if (!vertices.containsKey(userId)) return new HashMap<>();
+    List<Integer> data = new ArrayList<>(vertices.get(userId));
+    Map<Integer, Set<Stream<Integer>>> tmp =
+        data.stream()
+            .collect(
+                Collectors.groupingBy(
+                    Function.identity(),
+                    Collectors.mapping(
+                        v ->
+                            data.subList(data.get(v) + 1, data.size()).stream()
+                                .filter(i -> !vertices.get(v).contains(i)),
+                        Collectors.toSet())));
+    Map<Integer, Set<Integer>> res = new HashMap<>();
+    tmp.forEach((k, svs) -> svs.forEach(sv -> res.putIfAbsent(k, sv.collect(Collectors.toSet()))));
+    return res;
   }
 
   public static void main(String[] args) {
