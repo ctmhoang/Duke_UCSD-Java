@@ -5,7 +5,6 @@ import util.GraphLoader;
 
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -145,17 +144,21 @@ public class CapGraph implements Graph, ISocialNetwork {
                     Function.identity(),
                     Collectors.mapping(
                         v ->
-                            data.subList(data.get(v) + 1, data.size()).stream()
+                            data.subList(data.indexOf(v) + 1, data.size()).stream()
                                 .filter(i -> !vertices.get(v).contains(i)),
                         Collectors.toSet())));
     Map<Integer, Set<Integer>> res = new HashMap<>();
     tmp.forEach((k, svs) -> svs.forEach(sv -> res.putIfAbsent(k, sv.collect(Collectors.toSet()))));
+    res.forEach((k,v) -> v.parallelStream().forEach(val -> res.get(val).add(k)));
     return res;
   }
 
   public static void main(String[] args) {
-    Graph a = new CapGraph();
-    GraphLoader.loadGraph(a, "data/scc/test_" + 4 + ".txt");
-    a.getSCCs().stream().map(Graph::exportGraph).forEach(System.out::println);
+    CapGraph a = new CapGraph();
+//    GraphLoader.loadGraph(a, "data/scc/test_" + 4 + ".txt");
+//    a.getSCCs().stream().map(Graph::exportGraph).forEach(System.out::println);
+    GraphLoader.loadGraph(a,"data/small_test_graph.txt");;
+    a.getPotentialFriends(3).entrySet().forEach(System.out::println);
+
   }
 }
