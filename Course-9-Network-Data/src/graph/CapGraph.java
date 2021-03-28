@@ -5,6 +5,7 @@ import util.GraphLoader;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -151,6 +152,23 @@ public class CapGraph implements Graph, ISocialNetwork {
     tmp.forEach((k, svs) -> svs.forEach(sv -> res.putIfAbsent(k, sv.collect(Collectors.toSet()))));
     res.forEach((k,v) -> v.parallelStream().forEach(val -> res.get(val).add(k)));
     return res;
+  }
+
+  @Override
+  public HashSet<Integer> getMinToAnnounce(Mode mode) {
+    if(mode == Mode.GREEDY) return  getMinByGreedy();
+    return null;
+  }
+
+  private  HashSet<Integer> getMinByGreedy(){
+  }
+
+  private Map<Integer,Set<Integer>> updateUncoveredNode(Set<Integer> coveredMode, HashMap<Integer,HashSet<Integer>> currentNodes){
+    return currentNodes.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().stream().filter(ver -> !coveredMode.contains(ver)).collect(Collectors.toSet())))
+  }
+
+  private int getMostUncoveredVertex(HashMap<Integer,HashSet<Integer>> data){
+    return Collections.max(data.entrySet(), Comparator.comparingInt((Map.Entry<Integer,HashSet<Integer>> entry) -> entry.getValue().size())).getKey();
   }
 
   public static void main(String[] args) {
