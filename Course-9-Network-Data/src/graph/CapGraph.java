@@ -5,7 +5,6 @@ import util.GraphLoader;
 
 import java.util.*;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -150,33 +149,86 @@ public class CapGraph implements Graph, ISocialNetwork {
                         Collectors.toSet())));
     Map<Integer, Set<Integer>> res = new HashMap<>();
     tmp.forEach((k, svs) -> svs.forEach(sv -> res.putIfAbsent(k, sv.collect(Collectors.toSet()))));
-    res.forEach((k,v) -> v.parallelStream().forEach(val -> res.get(val).add(k)));
+    res.forEach((k, v) -> v.parallelStream().forEach(val -> res.get(val).add(k)));
     return res;
   }
 
   @Override
   public HashSet<Integer> getMinToAnnounce(Mode mode) {
-    if(mode == Mode.GREEDY) return  getMinByGreedy();
+    if (mode == Mode.GREEDY) return getMinByGreedy();
     return null;
   }
 
-  private  HashSet<Integer> getMinByGreedy(){
+  private HashSet<Integer> getMinByGreedy() {
+    HashSet<Integer> res = new HashSet<>();
+    Set<Integer> discovered = new HashSet<>();
+    Map<Integer, Set<Integer>> uncovered = new HashMap<>();
+    System.out.println(vertices);
+    for (int ver : vertices.keySet()) {
+      if (uncovered.containsKey(ver)) continue;
+      discovered.add(ver);
+      res.addAll(DFSPopulateUncovered(ver, discovered, uncovered));
+    }
+      System.out.println(uncovered);
+//    while (!uncovered.isEmpty()) {
+//      int vertex = getMostUncoveredVertex(uncovered);
+//      System.out.println(vertex);
+//
+//      uncovered.remove(vertex);
+//
+//      uncovered = updateUncoveredNode(res, uncovered);
+//      System.out.println(uncovered);
+//    }
+//    return res;
+    return null;
   }
 
-  private Map<Integer,Set<Integer>> updateUncoveredNode(Set<Integer> coveredMode, HashMap<Integer,HashSet<Integer>> currentNodes){
-    return currentNodes.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().stream().filter(ver -> !coveredMode.contains(ver)).collect(Collectors.toSet())))
+  private Map<Integer, Set<Integer>> updateUncoveredNode(
+      Set<Integer> coveredMode, Map<Integer, Set<Integer>> currentNodes) {
+    return currentNodes.entrySet().stream()
+        .collect(
+            Collectors.toMap(
+                Map.Entry::getKey,
+                entry ->
+                    entry.getValue().stream()
+                        .filter(ver -> !coveredMode.contains(ver))
+                        .collect(Collectors.toSet())))
+        .entrySet()
+        .stream()
+        .filter(entry -> entry.getValue().size() > 0)
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
-  private int getMostUncoveredVertex(HashMap<Integer,HashSet<Integer>> data){
-    return Collections.max(data.entrySet(), Comparator.comparingInt((Map.Entry<Integer,HashSet<Integer>> entry) -> entry.getValue().size())).getKey();
+  private int getMostUncoveredVertex(Map<Integer, Set<Integer>> data) {
+    Map<Integer,Integer> tmp = new HashMap<>();
+    data.keySet().forEach(key -> tmp.put(key,0));
+    data.values().forEach(set -> set.forEach(val -> tmp.put(val,tmp.get(val) + 1)));
+    return Collections.max(
+            tmp.entrySet(),
+            Comparator.comparingInt(
+                    Map.Entry::getValue))
+        .getKey();
+  }
+
+  private Stack<Integer> DFSPopulateUncovered(int vertex, Set<Integer> discovered, Map<Integer, Set<Integer>> populatedData) {
+    Set<Integer> connected = vertices.get(vertex);
+    Stack<Integer> currRes = new Stack<>();
+    for (int ver : connected) {
+      if (!discovered.contains(ver)) {
+        discovered.add(ver);
+        currRes.addAll(DFSPopulateUncovered(ver, discovered, populatedData));
+      }
+    }
+    populatedData.put(vertex, new HashSet<>(currRes));
+    currRes.push(vertex);
+    return currRes;
   }
 
   public static void main(String[] args) {
     CapGraph a = new CapGraph();
-//    GraphLoader.loadGraph(a, "data/scc/test_" + 4 + ".txt");
-//    a.getSCCs().stream().map(Graph::exportGraph).forEach(System.out::println);
-    GraphLoader.loadGraph(a,"data/small_test_graph.txt");;
-    a.getPotentialFriends(3).entrySet().forEach(System.out::println);
-
+    GraphLoader.loadGraph(a, "data/scc/test_" + 4 + ".txt");
+    //    a.getSCCs().stream().map(Graph::exportGraph).forEach(System.out::println);
+    //    a.getPotentialFriends(3).entrySet().forEach(System.out::println);
+    a.getMinToAnnounce(Mode.GREEDY).forEach(System.out::println);
   }
 }
