@@ -164,47 +164,33 @@ public class CapGraph implements Graph, ISocialNetwork {
     Set<Integer> discovered = new HashSet<>();
     Map<Integer, Set<Integer>> uncovered = new HashMap<>();
     Map<Integer, List<Integer>> tempUnpopulated = new HashMap<>();
-    System.out.println(vertices);
     for (int ver : vertices.keySet()) {
       if (uncovered.containsKey(ver)) continue;
       discovered.add(ver);
-      res.addAll(DFSPopulateUncovered(ver, discovered, uncovered, tempUnpopulated));
+      DFSPopulateUncovered(ver, discovered, uncovered, tempUnpopulated);
     }
-    System.out.println(uncovered);
-    //    while (!uncovered.isEmpty()) {
-    //      int vertex = getMostUncoveredVertex(uncovered);
-    //      System.out.println(vertex);
-    //
-    //      uncovered.remove(vertex);
-    //
-    //      uncovered = updateUncoveredNode(res, uncovered);
-    //      System.out.println(uncovered);
-    //    }
-    //    return res;
-    return null;
+        while (!uncovered.isEmpty()) {
+          int vertex = getMostUncoveredVertex(uncovered);
+
+          res.add(vertex);
+          Set <Integer> coveredSet = uncovered.get(vertex);
+          coveredSet.add(vertex);
+
+          uncovered = updateUncoveredNode(coveredSet, uncovered);
+
+
+        }
+        return res;
   }
 
   private Map<Integer, Set<Integer>> updateUncoveredNode(
-      Set<Integer> coveredMode, Map<Integer, Set<Integer>> currentNodes) {
-    return currentNodes.entrySet().stream()
-        .collect(
-            Collectors.toMap(
-                Map.Entry::getKey,
-                entry ->
-                    entry.getValue().stream()
-                        .filter(ver -> !coveredMode.contains(ver))
-                        .collect(Collectors.toSet())))
-        .entrySet()
-        .stream()
-        .filter(entry -> entry.getValue().size() > 0)
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+      Set<Integer> coveredVertices, Map<Integer, Set<Integer>> currentNodes) {
+    Map<Integer,Set<Integer>> res = new HashMap<>(currentNodes);
+    return res.entrySet().stream().filter(entry -> !coveredVertices.contains( entry.getKey() )).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
   private int getMostUncoveredVertex(Map<Integer, Set<Integer>> data) {
-    Map<Integer, Integer> tmp = new HashMap<>();
-    data.keySet().forEach(key -> tmp.put(key, 0));
-    data.values().forEach(set -> set.forEach(val -> tmp.put(val, tmp.get(val) + 1)));
-    return Collections.max(tmp.entrySet(), Comparator.comparingInt(Map.Entry::getValue)).getKey();
+    return Collections.max(data.entrySet(), Comparator.comparingInt(entry -> entry.getValue().size())).getKey();
   }
 
   private Stack<Integer> DFSPopulateUncovered(
