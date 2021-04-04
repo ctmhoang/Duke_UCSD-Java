@@ -163,23 +163,24 @@ public class CapGraph implements Graph, ISocialNetwork {
     HashSet<Integer> res = new HashSet<>();
     Set<Integer> discovered = new HashSet<>();
     Map<Integer, Set<Integer>> uncovered = new HashMap<>();
+    Map<Integer, List<Integer>> tempUnpopulated = new HashMap<>();
     System.out.println(vertices);
     for (int ver : vertices.keySet()) {
       if (uncovered.containsKey(ver)) continue;
       discovered.add(ver);
-      res.addAll(DFSPopulateUncovered(ver, discovered, uncovered));
+      res.addAll(DFSPopulateUncovered(ver, discovered, uncovered, tempUnpopulated));
     }
-      System.out.println(uncovered);
-//    while (!uncovered.isEmpty()) {
-//      int vertex = getMostUncoveredVertex(uncovered);
-//      System.out.println(vertex);
-//
-//      uncovered.remove(vertex);
-//
-//      uncovered = updateUncoveredNode(res, uncovered);
-//      System.out.println(uncovered);
-//    }
-//    return res;
+    System.out.println(uncovered);
+    //    while (!uncovered.isEmpty()) {
+    //      int vertex = getMostUncoveredVertex(uncovered);
+    //      System.out.println(vertex);
+    //
+    //      uncovered.remove(vertex);
+    //
+    //      uncovered = updateUncoveredNode(res, uncovered);
+    //      System.out.println(uncovered);
+    //    }
+    //    return res;
     return null;
   }
 
@@ -200,26 +201,63 @@ public class CapGraph implements Graph, ISocialNetwork {
   }
 
   private int getMostUncoveredVertex(Map<Integer, Set<Integer>> data) {
-    Map<Integer,Integer> tmp = new HashMap<>();
-    data.keySet().forEach(key -> tmp.put(key,0));
-    data.values().forEach(set -> set.forEach(val -> tmp.put(val,tmp.get(val) + 1)));
-    return Collections.max(
-            tmp.entrySet(),
-            Comparator.comparingInt(
-                    Map.Entry::getValue))
-        .getKey();
+    Map<Integer, Integer> tmp = new HashMap<>();
+    data.keySet().forEach(key -> tmp.put(key, 0));
+    data.values().forEach(set -> set.forEach(val -> tmp.put(val, tmp.get(val) + 1)));
+    return Collections.max(tmp.entrySet(), Comparator.comparingInt(Map.Entry::getValue)).getKey();
   }
 
-  private Stack<Integer> DFSPopulateUncovered(int vertex, Set<Integer> discovered, Map<Integer, Set<Integer>> populatedData) {
+  private Stack<Integer> DFSPopulateUncovered(
+      int vertex,
+      Set<Integer> discovered,
+      Map<Integer, Set<Integer>> populatedData,
+      Map<Integer, List<Integer>> unpopulated) {
     Set<Integer> connected = vertices.get(vertex);
     Stack<Integer> currRes = new Stack<>();
     for (int ver : connected) {
       if (!discovered.contains(ver)) {
         discovered.add(ver);
-        currRes.addAll(DFSPopulateUncovered(ver, discovered, populatedData));
+        List<Integer> vals = DFSPopulateUncovered(ver, discovered, populatedData, unpopulated);
+        vals.remove(Integer.valueOf(vertex));
+        currRes.addAll(vals);
+        if (vals.stream().anyMatch(unpopulated::containsKey)) {
+          vals.stream()
+              .filter(unpopulated::containsKey)
+              .forEach(
+                  val -> {
+                    List<Integer> tmp = unpopulated.get(val);
+                    if (tmp != null) tmp.add(ver);
+                    else {
+                      List<Integer> newData = new ArrayList<>(Collections.singletonList(ver));
+                      unpopulated.put(val, newData);
+                    }
+                  });
+        }
+      } else {
+        currRes.add(ver);
+        if (!unpopulated.containsKey(vertex)) {
+          unpopulated.put(ver, new ArrayList<>(Collections.singletonList(vertex)));
+        } else {
+          unpopulated.get(ver).add(vertex);
+        }
       }
     }
+
     populatedData.put(vertex, new HashSet<>(currRes));
+
+    if (unpopulated.containsKey(vertex)) {
+      Set<Integer> newData = populatedData.get(vertex);
+      unpopulated
+          .get(vertex)
+          .forEach(
+              unpol -> {
+                Set<Integer> tmpData = new HashSet<>(newData);
+                tmpData.addAll(populatedData.get(unpol));
+                populatedData.put(unpol, tmpData);
+              });
+      unpopulated.remove(vertex);
+    }
+
     currRes.push(vertex);
     return currRes;
   }
