@@ -155,8 +155,14 @@ public class CapGraph implements Graph, ISocialNetwork {
 
   @Override
   public HashSet<Integer> getMinToAnnounce(Mode mode) {
-    if (mode == Mode.GREEDY) return getMinByGreedy();
-    return null;
+    switch (mode) {
+      case GREEDY:
+        return getMinByGreedy();
+      case GENETIC:
+        // TODO: Implement this
+      default:
+        return null;
+    }
   }
 
   private HashSet<Integer> getMinByGreedy() {
@@ -169,28 +175,30 @@ public class CapGraph implements Graph, ISocialNetwork {
       discovered.add(ver);
       DFSPopulateUncovered(ver, discovered, uncovered, tempUnpopulated);
     }
-        while (!uncovered.isEmpty()) {
-          int vertex = getMostUncoveredVertex(uncovered);
+    while (!uncovered.isEmpty()) {
+      int vertex = getMostUncoveredVertex(uncovered);
 
-          res.add(vertex);
-          Set <Integer> coveredSet = uncovered.get(vertex);
-          coveredSet.add(vertex);
+      res.add(vertex);
+      Set<Integer> coveredSet = uncovered.get(vertex);
+      coveredSet.add(vertex);
 
-          uncovered = updateUncoveredNode(coveredSet, uncovered);
-
-
-        }
-        return res;
+      uncovered = updateUncoveredNode(coveredSet, uncovered);
+    }
+    return res;
   }
 
   private Map<Integer, Set<Integer>> updateUncoveredNode(
       Set<Integer> coveredVertices, Map<Integer, Set<Integer>> currentNodes) {
-    Map<Integer,Set<Integer>> res = new HashMap<>(currentNodes);
-    return res.entrySet().stream().filter(entry -> !coveredVertices.contains( entry.getKey() )).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    Map<Integer, Set<Integer>> res = new HashMap<>(currentNodes);
+    return res.entrySet().stream()
+        .filter(entry -> !coveredVertices.contains(entry.getKey()))
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
   private int getMostUncoveredVertex(Map<Integer, Set<Integer>> data) {
-    return Collections.max(data.entrySet(), Comparator.comparingInt(entry -> entry.getValue().size())).getKey();
+    return Collections.max(
+            data.entrySet(), Comparator.comparingInt(entry -> entry.getValue().size()))
+        .getKey();
   }
 
   private Stack<Integer> DFSPopulateUncovered(

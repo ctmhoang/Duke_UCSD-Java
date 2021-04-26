@@ -1,5 +1,6 @@
 package graph;
 
 public enum Mode {
-    GREEDY
+    GREEDY,
+    GENETIC
 }
