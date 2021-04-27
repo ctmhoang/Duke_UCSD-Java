@@ -4,6 +4,7 @@ package graph;
 import util.GraphLoader;
 
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -17,8 +18,13 @@ public class CapGraph implements Graph, ISocialNetwork {
 
   private final HashMap<Integer, HashSet<Integer>> vertices;
 
+  private final Comparator<Integer> VERTICE_COMPARATOR;
+
+  private static final int MAX_RLS_TIMES = 761;
+
   public CapGraph() {
     this.vertices = new HashMap<>();
+    VERTICE_COMPARATOR = Comparator.comparingInt(v -> vertices.get(v).size());
   }
 
   /* (non-Javadoc)
@@ -214,20 +220,17 @@ public class CapGraph implements Graph, ISocialNetwork {
     return res;
   }
 
-  private HashSet<Integer> greedyPicker(Map<Integer, Set<Integer>> sortedMap) {
-    if (sortedMap.size() == 0) return null;
-
+  private HashSet<Integer> greedyPicker(List<Integer> sortedMap) {
     HashSet<Integer> res = new HashSet<>();
-    HashSet<Integer> convertedIds = new HashSet<>();
-    Iterator<Map.Entry<Integer, Set<Integer>>> iterMap = sortedMap.entrySet().iterator();
-    Map.Entry<Integer, Set<Integer>> id = iterMap.next();
-    while (iterMap.hasNext()) {
-      if (convertedIds.contains(id.getKey())) {
-        id = iterMap.next();
+    HashSet<Integer> coveredIds = new HashSet<>();
+    for (int id : sortedMap) {
+      if (coveredIds.size() == vertices.size()) break;
+      if (coveredIds.contains(id)) {
         continue;
       }
-      res.add(id.getKey());
-      convertedIds.addAll(id.getValue());
+      res.add(id);
+      coveredIds.addAll(vertices.get(id));
+      coveredIds.add(id);
     }
     return res;
   }
@@ -355,12 +358,45 @@ public class CapGraph implements Graph, ISocialNetwork {
   }
 
   private HashSet<Integer> getMinByRLS() {
-    LinkedHashMap<Integer, HashSet<Integer>> sortedVertices =
-        vertices.entrySet().stream()
-            .sorted(Comparator.comparingInt(entry -> entry.getValue().size()))
-            .collect(
-                Collectors.toMap(
-                    Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
+
+    if (vertices.keySet().size() == 0) return null;
+
+    List<Integer> sortedVertices =
+        vertices.keySet().stream()
+            .sorted(VERTICE_COMPARATOR.reversed())
+            .collect(Collectors.toList());
+
+    HashSet<Integer> currOptSol = greedyPicker(sortedVertices);
+
+    List<Integer> currentPermutation = createNewPermutation(currOptSol);
+
+    for (int i = 0; i < MAX_RLS_TIMES; i++) {
+      currentPermutation = jump(currentPermutation);
+      HashSet<Integer> newMDS = greedyPicker(currentPermutation);
+      currentPermutation = createNewPermutation(newMDS);
+      if (newMDS.size() < currOptSol.size()) currOptSol = newMDS;
+    }
+    return currOptSol;
+  }
+
+  private List<Integer> jump(List<Integer> currentPermutation) {
+    int randomIdx = ThreadLocalRandom.current().nextInt(1, currentPermutation.size());
+    List<Integer> res = new LinkedList<>();
+    res.add(currentPermutation.get(randomIdx));
+    res.addAll(currentPermutation.subList(0, randomIdx));
+    res.addAll(currentPermutation.subList(randomIdx + 1, currentPermutation.size()));
+    return res;
+  }
+
+  private List<Integer> createNewPermutation(HashSet<Integer> currOptSol) {
+    List<Integer> res = new LinkedList<>(currOptSol);
+    res.sort(VERTICE_COMPARATOR.reversed());
+    Set<Integer> remainVals = new HashSet<>(vertices.keySet());
+    res.forEach(remainVals::remove);
+    List<Integer> remainValList = new LinkedList<>(remainVals);
+    Collections.shuffle(remainValList);
+    res.addAll(remainValList);
+    return res;
   }
 
   public static void main(String[] args) {
@@ -368,6 +404,6 @@ public class CapGraph implements Graph, ISocialNetwork {
     GraphLoader.loadGraph(a, "data/scc/test_" + 4 + ".txt");
     //    a.getSCCs().stream().map(Graph::exportGraph).forEach(System.out::println);
     //    a.getPotentialFriends(3).entrySet().forEach(System.out::println);
-    a.getMinToAnnounce(Mode.GREEDY_DFS_DYNA).forEach(System.out::println);
+    a.getMinToAnnounce(Mode.RLS).forEach(System.out::println);
   }
 }
