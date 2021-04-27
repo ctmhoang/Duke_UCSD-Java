@@ -167,7 +167,7 @@ public class CapGraph implements Graph, ISocialNetwork {
       case GREEDY_DFS_DYNA:
         return getMinByGDD();
       case RLS:
-        // TODO: Implement this
+        return getMinByRLS();
       default:
         return null;
     }
@@ -179,7 +179,6 @@ public class CapGraph implements Graph, ISocialNetwork {
    * @return mds
    */
   private HashSet<Integer> getMinByGDD() {
-    HashSet<Integer> res = new HashSet<>();
     Set<Integer> discovered = new HashSet<>();
     Map<Integer, Set<Integer>> uncovered = new HashMap<>();
     // buffer to keep track of not yet populated ids
@@ -190,14 +189,45 @@ public class CapGraph implements Graph, ISocialNetwork {
       DFSPopulateUncovered(ver, discovered, uncovered, tempUnpopulated);
     }
     System.out.println(uncovered);
-    while (!uncovered.isEmpty()) {
-      int vertex = getMostUncoveredVertex(uncovered);
+
+    return greedyPicker(uncovered, this::getMostUncoveredVertex);
+  }
+
+  private HashSet<Integer> greedyPicker(
+      Map<Integer, Set<Integer>> uncovered,
+      Function<Map<Integer, Set<Integer>>, Integer> getTheMostCb) {
+
+    if (uncovered.size() == 0 || getTheMostCb == null) return null;
+
+    Map<Integer, Set<Integer>> clonedMap = new HashMap<>(uncovered);
+    HashSet<Integer> res = new HashSet<>();
+
+    while (!clonedMap.isEmpty()) {
+      int vertex = getTheMostCb.apply(clonedMap);
 
       res.add(vertex);
-      Set<Integer> coveredSet = uncovered.get(vertex);
+      Set<Integer> coveredSet = clonedMap.get(vertex);
       coveredSet.add(vertex);
 
-      uncovered = updateUncoveredNode(coveredSet, uncovered);
+      clonedMap = updateUncoveredNode(coveredSet, clonedMap);
+    }
+    return res;
+  }
+
+  private HashSet<Integer> greedyPicker(Map<Integer, Set<Integer>> sortedMap) {
+    if (sortedMap.size() == 0) return null;
+
+    HashSet<Integer> res = new HashSet<>();
+    HashSet<Integer> convertedIds = new HashSet<>();
+    Iterator<Map.Entry<Integer, Set<Integer>>> iterMap = sortedMap.entrySet().iterator();
+    Map.Entry<Integer, Set<Integer>> id = iterMap.next();
+    while (iterMap.hasNext()) {
+      if (convertedIds.contains(id.getKey())) {
+        id = iterMap.next();
+        continue;
+      }
+      res.add(id.getKey());
+      convertedIds.addAll(id.getValue());
     }
     return res;
   }
@@ -322,6 +352,15 @@ public class CapGraph implements Graph, ISocialNetwork {
     // add the id to the current result
     currRes.add(vertex);
     return currRes;
+  }
+
+  private HashSet<Integer> getMinByRLS() {
+    LinkedHashMap<Integer, HashSet<Integer>> sortedVertices =
+        vertices.entrySet().stream()
+            .sorted(Comparator.comparingInt(entry -> entry.getValue().size()))
+            .collect(
+                Collectors.toMap(
+                    Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
   }
 
   public static void main(String[] args) {
