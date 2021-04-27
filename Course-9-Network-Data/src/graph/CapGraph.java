@@ -137,6 +137,10 @@ public class CapGraph implements Graph, ISocialNetwork {
   public Map<Integer, Set<Integer>> getPotentialFriends(int userId) {
     if (!vertices.containsKey(userId)) return new HashMap<>();
     List<Integer> data = new ArrayList<>(vertices.get(userId));
+    // Get all of potential friends after the current user's id index in the list
+    // who are not friend with the currently processing user's id
+    // and add them to the set of stream users id (jdk 8 do not support flatmap in
+    // Collectors.mapping)
     Map<Integer, Set<Stream<Integer>>> tmp =
         data.stream()
             .collect(
@@ -148,7 +152,11 @@ public class CapGraph implements Graph, ISocialNetwork {
                                 .filter(i -> !vertices.get(v).contains(i)),
                         Collectors.toSet())));
     Map<Integer, Set<Integer>> res = new HashMap<>();
+    // detach the map of actual user's id with their potential friend's ids from the streams of
+    // user's ids
     tmp.forEach((k, svs) -> svs.forEach(sv -> res.putIfAbsent(k, sv.collect(Collectors.toSet()))));
+    // populate potential friend's ids from the set back to the keys ( cuz in the previous step,
+    // we only add potential friend's ids after the processing user's id)
     res.forEach((k, v) -> v.parallelStream().forEach(val -> res.get(val).add(k)));
     return res;
   }
@@ -156,25 +164,32 @@ public class CapGraph implements Graph, ISocialNetwork {
   @Override
   public HashSet<Integer> getMinToAnnounce(Mode mode) {
     switch (mode) {
-      case GREEDY:
-        return getMinByGreedy();
-      case GENETIC:
+      case GREEDY_DFS_DYNA:
+        return getMinByGDD();
+      case RLS:
         // TODO: Implement this
       default:
         return null;
     }
   }
 
-  private HashSet<Integer> getMinByGreedy() {
+  /**
+   * This function run DFS + Greedy + Dynamic Programming Algo to get mds
+   *
+   * @return mds
+   */
+  private HashSet<Integer> getMinByGDD() {
     HashSet<Integer> res = new HashSet<>();
     Set<Integer> discovered = new HashSet<>();
     Map<Integer, Set<Integer>> uncovered = new HashMap<>();
-    Map<Integer, List<Integer>> tempUnpopulated = new HashMap<>();
+    // buffer to keep track of not yet populated ids
+    Map<Integer, Set<Integer>> tempUnpopulated = new HashMap<>();
     for (int ver : vertices.keySet()) {
       if (uncovered.containsKey(ver)) continue;
       discovered.add(ver);
       DFSPopulateUncovered(ver, discovered, uncovered, tempUnpopulated);
     }
+    System.out.println(uncovered);
     while (!uncovered.isEmpty()) {
       int vertex = getMostUncoveredVertex(uncovered);
 
@@ -187,72 +202,125 @@ public class CapGraph implements Graph, ISocialNetwork {
     return res;
   }
 
+  /**
+   * Update the current currentUncoveredNodes collection if the coveredVertices take out all of ids
+   * in that
+   *
+   * @param coveredVertices all the ids need to take out of the currentUncoveredNodes
+   * @param currentUncoveredNodes current uncovered collection of ids need to update
+   * @return the new map with the updated ids
+   */
   private Map<Integer, Set<Integer>> updateUncoveredNode(
-      Set<Integer> coveredVertices, Map<Integer, Set<Integer>> currentNodes) {
-    Map<Integer, Set<Integer>> res = new HashMap<>(currentNodes);
+      Set<Integer> coveredVertices, Map<Integer, Set<Integer>> currentUncoveredNodes) {
+    Map<Integer, Set<Integer>> res = new HashMap<>(currentUncoveredNodes);
     return res.entrySet().stream()
         .filter(entry -> !coveredVertices.contains(entry.getKey()))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
+  /**
+   * This method return the first ids with the most covered id in the graph
+   *
+   * @param data map of the id and the deeply associated ids
+   * @return id of the user
+   */
   private int getMostUncoveredVertex(Map<Integer, Set<Integer>> data) {
     return Collections.max(
             data.entrySet(), Comparator.comparingInt(entry -> entry.getValue().size()))
         .getKey();
   }
 
-  private Stack<Integer> DFSPopulateUncovered(
+  /**
+   * Perform DFS to populate pass-in `populatedData` params
+   *
+   * @param vertex id choose as root to operate DFS algo
+   * @param discovered set of discovered ids
+   * @param populatedData Map of user's ids and set of deeply-searched friend's ids
+   * @param unpopulated Map of user's id and set of friend's related ids which have not had a DFS
+   *     search result of this user's id
+   * @return a set of ids in each recursive level which actually we do not need to look into :v
+   *     <p>Remember in dfs we processing node in tree in top-down approach
+   */
+  private Set<Integer> DFSPopulateUncovered(
       int vertex,
       Set<Integer> discovered,
       Map<Integer, Set<Integer>> populatedData,
-      Map<Integer, List<Integer>> unpopulated) {
+      Map<Integer, Set<Integer>> unpopulated) {
+
+    // get directly connected ids with currently processing `vertex` id
     Set<Integer> connected = vertices.get(vertex);
-    Stack<Integer> currRes = new Stack<>();
+    // current node we've travelled
+    Set<Integer> currRes = new HashSet<>(connected);
     for (int ver : connected) {
       if (!discovered.contains(ver)) {
+        // mark as discovered so we don't need to visit it again
         discovered.add(ver);
-        List<Integer> vals = DFSPopulateUncovered(ver, discovered, populatedData, unpopulated);
-        vals.remove(Integer.valueOf(vertex));
+        // DFS it
+        Set<Integer> vals = DFSPopulateUncovered(ver, discovered, populatedData, unpopulated);
+        // need to remove vertex from vals cuz some situations, we put it accidentally in the
+        // following stack
+        vals.remove(vertex);
         currRes.addAll(vals);
-        if (vals.stream().anyMatch(unpopulated::containsKey)) {
+        // check if the current vals we got from recursive calls is in unpopulated or discovered
+        // above
+        if (vals.stream()
+            .anyMatch(val -> unpopulated.containsKey(val) || discovered.contains(val))) {
+          // if it in unpopulated map, get the entry set with it as the key and add current
+          // processing id
+          // (has directly ship with the current pass-in index) as a value to populated it later
           vals.stream()
               .filter(unpopulated::containsKey)
+              .forEach(val -> unpopulated.get(val).add(ver));
+
+          // if discovered which means we had seen this id before and have searched all its neighbor
+          // yet
+          vals.stream()
+              .filter(discovered::contains)
               .forEach(
                   val -> {
-                    List<Integer> tmp = unpopulated.get(val);
-                    if (tmp != null) tmp.add(ver);
+                    Set<Integer> tmp = unpopulated.get(val);
+                    if (tmp != null) tmp.add(vertex);
                     else {
-                      List<Integer> newData = new ArrayList<>(Collections.singletonList(ver));
+                      Set<Integer> newData = new HashSet<>(Collections.singletonList(vertex));
                       unpopulated.put(val, newData);
                     }
                   });
         }
-      } else {
-        currRes.add(ver);
-        if (!unpopulated.containsKey(vertex)) {
-          unpopulated.put(ver, new ArrayList<>(Collections.singletonList(vertex)));
+      }
+      // if discovered which means we had seen this id before and have searched all its neighbor yet
+      else {
+        // put it to the map
+        if (!unpopulated.containsKey(ver)) {
+          unpopulated.put(ver, new HashSet<>(Collections.singletonList(vertex)));
         } else {
           unpopulated.get(ver).add(vertex);
         }
       }
     }
 
+    // put the current result to the data
     populatedData.put(vertex, new HashSet<>(currRes));
 
+    // Check the unpopulated map has the vertex we already has the result
     if (unpopulated.containsKey(vertex)) {
+      // if it has, populate it with the result value we get above
       Set<Integer> newData = populatedData.get(vertex);
       unpopulated
           .get(vertex)
           .forEach(
               unpol -> {
                 Set<Integer> tmpData = new HashSet<>(newData);
+                tmpData.remove(unpol);
                 tmpData.addAll(populatedData.get(unpol));
                 populatedData.put(unpol, tmpData);
               });
+      // after the population in those record, remove all the associated with friend's ids and the
+      // processing id
       unpopulated.remove(vertex);
     }
 
-    currRes.push(vertex);
+    // add the id to the current result
+    currRes.add(vertex);
     return currRes;
   }
 
@@ -261,6 +329,6 @@ public class CapGraph implements Graph, ISocialNetwork {
     GraphLoader.loadGraph(a, "data/scc/test_" + 4 + ".txt");
     //    a.getSCCs().stream().map(Graph::exportGraph).forEach(System.out::println);
     //    a.getPotentialFriends(3).entrySet().forEach(System.out::println);
-    a.getMinToAnnounce(Mode.GREEDY).forEach(System.out::println);
+    a.getMinToAnnounce(Mode.GREEDY_DFS_DYNA).forEach(System.out::println);
   }
 }

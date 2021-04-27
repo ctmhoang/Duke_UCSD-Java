@@ -1,6 +1,6 @@
 package graph;
 
 public enum Mode {
-    GREEDY,
-    GENETIC
+    GREEDY_DFS_DYNA,
+    RLS
 }
