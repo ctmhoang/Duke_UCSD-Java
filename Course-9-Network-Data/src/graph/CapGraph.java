@@ -194,11 +194,17 @@ public class CapGraph implements Graph, ISocialNetwork {
       discovered.add(ver);
       DFSPopulateUncovered(ver, discovered, uncovered, tempUnpopulated);
     }
-    System.out.println(uncovered);
+//    System.out.println(uncovered);
 
     return greedyPicker(uncovered, this::getMostUncoveredVertex);
   }
 
+  /**
+   * Using Greedy tactic to select most covered ids according to getTheMostCb func
+   * @param uncovered unsorted map of a user's id and its associated ids
+   * @param getTheMostCb callback func help to determine which user's id covered the most associated ids
+   * @return set of user's ids as mds
+   */
   private HashSet<Integer> greedyPicker(
       Map<Integer, Set<Integer>> uncovered,
       Function<Map<Integer, Set<Integer>>, Integer> getTheMostCb) {
@@ -220,10 +226,15 @@ public class CapGraph implements Graph, ISocialNetwork {
     return res;
   }
 
-  private HashSet<Integer> greedyPicker(List<Integer> sortedMap) {
+  /**
+   * Using Greedy tactic to select most covered
+   * @param sortedList sortedList of user's ids (directly connected ids)
+   * @return set of user's ids as mds
+   */
+  private HashSet<Integer> greedyPicker(List<Integer> sortedList) {
     HashSet<Integer> res = new HashSet<>();
     HashSet<Integer> coveredIds = new HashSet<>();
-    for (int id : sortedMap) {
+    for (int id : sortedList) {
       if (coveredIds.size() == vertices.size()) break;
       if (coveredIds.contains(id)) {
         continue;
@@ -296,18 +307,18 @@ public class CapGraph implements Graph, ISocialNetwork {
         currRes.addAll(vals);
         // check if the current vals we got from recursive calls is in unpopulated or discovered
         // above
-        if (vals.stream()
+        if (vals.parallelStream()
             .anyMatch(val -> unpopulated.containsKey(val) || discovered.contains(val))) {
           // if it in unpopulated map, get the entry set with it as the key and add current
           // processing id
           // (has directly ship with the current pass-in index) as a value to populated it later
-          vals.stream()
+          vals.parallelStream()
               .filter(unpopulated::containsKey)
               .forEach(val -> unpopulated.get(val).add(ver));
 
           // if discovered which means we had seen this id before and have searched all its neighbor
           // yet
-          vals.stream()
+          vals.parallelStream()
               .filter(discovered::contains)
               .forEach(
                   val -> {
@@ -357,6 +368,10 @@ public class CapGraph implements Graph, ISocialNetwork {
     return currRes;
   }
 
+  /**
+   * Using order-based randomized local search algorithm and greedy algo to find mds
+   * @return mds
+   */
   private HashSet<Integer> getMinByRLS() {
 
     if (vertices.keySet().size() == 0) return null;
@@ -379,6 +394,11 @@ public class CapGraph implements Graph, ISocialNetwork {
     return currOptSol;
   }
 
+  /**
+   * take a random index in range [1:currentPermutation size] and put it in the first of the list
+   * @param currentPermutation
+   * @return new permutation version of pass-in list
+   */
   private List<Integer> jump(List<Integer> currentPermutation) {
     int randomIdx = ThreadLocalRandom.current().nextInt(1, currentPermutation.size());
     List<Integer> res = new LinkedList<>();
@@ -388,6 +408,13 @@ public class CapGraph implements Graph, ISocialNetwork {
     return res;
   }
 
+  /**
+   * Create new permutation after chopping down some of ids by greedy algo
+   *
+   * @param currOptSol current optimal solution we've currently found
+   * @return new List of permutation with greedy selected ids up top, the remaining at the end of
+   *     the list and shuffled
+   */
   private List<Integer> createNewPermutation(HashSet<Integer> currOptSol) {
     List<Integer> res = new LinkedList<>(currOptSol);
     res.sort(VERTICE_COMPARATOR.reversed());
@@ -401,7 +428,7 @@ public class CapGraph implements Graph, ISocialNetwork {
 
   public static void main(String[] args) {
     CapGraph a = new CapGraph();
-    GraphLoader.loadGraph(a, "data/scc/test_" + 4 + ".txt");
+    GraphLoader.loadGraph(a, "data/scc/test_" + 6 + ".txt");
     //    a.getSCCs().stream().map(Graph::exportGraph).forEach(System.out::println);
     //    a.getPotentialFriends(3).entrySet().forEach(System.out::println);
     a.getMinToAnnounce(Mode.RLS).forEach(System.out::println);
